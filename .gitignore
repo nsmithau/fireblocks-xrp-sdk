@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+secrets/
+tests/ ##remove later to include tests
+*.log
+.env
+.DS_Store
+.vscode/
+*.key
+test.ts
