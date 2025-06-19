@@ -8,6 +8,8 @@ RUN npm install
 
 # Copy application code
 COPY . .
+COPY docs ./docs
+
 
 # Build TypeScript code
 RUN npm run build

@@ -1,15 +1,14 @@
-import { FbksXrpApiService } from "../src/api/ApiService";
-import { TransactionType } from "../src/pool/types";
+import {
+  FbksXrpApiService,
+  CrossCurrencyPaymentOpts,
+  TransactionType,
+} from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
-import { CrossCurrencyPaymentOpts } from "../src/config/types";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });

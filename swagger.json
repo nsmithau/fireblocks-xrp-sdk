@@ -1,0 +1,995 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Fireblocks Ripple SDK API",
+    "description": "API for Ripple Dex and Token operations using Fireblocks",
+    "version": "1.0.0",
+    "license": {
+      "name": "ISC",
+      "url": "https://opensource.org/licenses/ISC"
+    }
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+  "tags": [
+    {
+      "name": "DEX",
+      "description": "Ripple DEX operations (offer create/cancel, cross-currency payment)"
+    },
+    {
+      "name": "Token",
+      "description": "IOU/Fungible token operations (transfer, burn, clawback, freeze, trust lines, XRP transfer, AccountSet)"
+    }
+  ],
+  "schemes": [
+    "http"
+  ],
+  "paths": {
+    "/api/dex/offerCreate/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "DEX"
+        ],
+        "summary": "Create an Offer",
+        "description": "Creates an offer on the XRP Ledger DEX.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OfferCreateResponse",
+            "schema": {
+              "$ref": "#/definitions/OfferCreateResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/OfferCreateRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dex/offerCancel/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "DEX"
+        ],
+        "summary": "Cancel an Offer",
+        "description": "Cancels an existing offer on the XRP Ledger DEX.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OfferCancelResponse",
+            "schema": {
+              "$ref": "#/definitions/OfferCancelResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/OfferCancelRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dex/crossCurrencyPayment/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "DEX"
+        ],
+        "summary": "Cross Currency Payment",
+        "description": "Performs a cross-currency payment on the XRP Ledger DEX.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CrossCurrencyPaymentResponse",
+            "schema": {
+              "$ref": "#/definitions/CrossCurrencyPaymentResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/CrossCurrencyPaymentRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/tokenTransfer/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Token Transfer",
+        "description": "Transfers IOU/fungible tokens between accounts.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TokenTransferResponse",
+            "schema": {
+              "$ref": "#/definitions/TokenTransferResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/TokenTransferRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/burnToken/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Burn Token",
+        "description": "Burns IOU/fungible tokens.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "BurnTokenResponse",
+            "schema": {
+              "$ref": "#/definitions/BurnTokenResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/BurnTokenRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/clawback/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Clawback",
+        "description": "Clawback IOU/fungible tokens from a holder.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ClawbackResponse",
+            "schema": {
+              "$ref": "#/definitions/ClawbackResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/ClawbackRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/freezeToken/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Freeze Token",
+        "description": "Freezes IOU/fungible tokens on an account.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "FreezeTokenResponse",
+            "schema": {
+              "$ref": "#/definitions/FreezeTokenResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/FreezeTokenRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/trustSet/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "TrustSet",
+        "description": "Creates or updates a trust line for IOU/fungible tokens.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "TrustSetResponse",
+            "schema": {
+              "$ref": "#/definitions/TrustSetResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/TrustSetRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/accountSet/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "AccountSet",
+        "description": "Account configuration operations.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AccountSetResponse",
+            "schema": {
+              "$ref": "#/definitions/AccountSetResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/AccountSetRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/token/xrpTransfer/{vaultAccountId}": {
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "XRP Transfer",
+        "description": "Transfers XRP from one account to another.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "XrpTransferResponse",
+            "schema": {
+              "$ref": "#/definitions/XrpTransferResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/XrpTransferRequest"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "OfferCreateRequest": {
+      "type": "object",
+      "properties": {
+        "sellAmount": {
+          "type": "string",
+          "example": "10"
+        },
+        "buyAmount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "THT"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rpbkpPF8PrPuMN8NgEVkCsJDCWwP9KePFq"
+            },
+            "value": {
+              "type": "string",
+              "example": "2"
+            }
+          }
+        },
+        "flags": {
+          "type": "object",
+          "properties": {
+            "tfPassiveOffer": {
+              "type": "boolean",
+              "example": true
+            },
+            "tfSellOffer": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        }
+      }
+    },
+    "OfferCreateResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "OfferCreate"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "OfferCancelRequest": {
+      "type": "object",
+      "properties": {
+        "offerSequence": {
+          "type": "number",
+          "example": 123456
+        }
+      }
+    },
+    "OfferCancelResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "OfferCancel"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "CrossCurrencyPaymentRequest": {
+      "type": "object",
+      "properties": {
+        "sourceAmount": {
+          "type": "string",
+          "example": "10"
+        },
+        "destinationAmount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rIssuerAddress"
+            },
+            "value": {
+              "type": "string",
+              "example": "12"
+            }
+          }
+        },
+        "destination": {
+          "type": "string",
+          "example": "rDestination"
+        },
+        "paths": {
+          "type": "array",
+          "example": [],
+          "items": {}
+        },
+        "invoiceId": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "CrossCurrencyPaymentResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "Payment"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "TokenTransferRequest": {
+      "type": "object",
+      "properties": {
+        "destination": {
+          "type": "string",
+          "example": "rDestination"
+        },
+        "amount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rIssuerAddress"
+            },
+            "value": {
+              "type": "string",
+              "example": "100"
+            }
+          }
+        },
+        "fee": {
+          "type": "string",
+          "example": "12"
+        },
+        "flags": {
+          "type": "object",
+          "properties": {
+            "tfPartialPayment": {
+              "type": "boolean",
+              "example": true
+            }
+          }
+        }
+      }
+    },
+    "TokenTransferResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "Payment"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "AccountSetRequest": {
+      "type": "object",
+      "properties": {
+        "configs": {
+          "type": "object",
+          "properties": {
+            "setFlag": {
+              "type": "object",
+              "properties": {
+                "asfRequireAuth": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            },
+            "tfFlags": {
+              "type": "object",
+              "properties": {
+                "tfAllowXRP": {
+                  "type": "boolean",
+                  "example": true
+                }
+              }
+            },
+            "domain": {
+              "type": "string",
+              "example": "example.com"
+            }
+          }
+        }
+      }
+    },
+    "AccountSetResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "AccountSet"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "BurnTokenRequest": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rIssuerAddress"
+            },
+            "value": {
+              "type": "string",
+              "example": "10"
+            }
+          }
+        },
+        "fee": {
+          "type": "string",
+          "example": "10"
+        }
+      }
+    },
+    "BurnTokenResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "Payment"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "FreezeTokenRequest": {
+      "type": "object",
+      "properties": {
+        "target": {
+          "type": "string",
+          "example": "rHolderAddress"
+        },
+        "token": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rIssuerAddress"
+            }
+          }
+        }
+      }
+    },
+    "FreezeTokenResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "SetTrust"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "ClawbackRequest": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string",
+          "example": "rIssuerAddress"
+        },
+        "amount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rHolderAddress"
+            },
+            "value": {
+              "type": "string",
+              "example": "50"
+            }
+          }
+        }
+      }
+    },
+    "ClawbackResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "Clawback"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "TrustSetRequest": {
+      "type": "object",
+      "properties": {
+        "limitAmount": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "example": "USD"
+            },
+            "issuer": {
+              "type": "string",
+              "example": "rIssuerAddress"
+            },
+            "value": {
+              "type": "string",
+              "example": "5000"
+            }
+          }
+        },
+        "qualityIn": {
+          "type": "number",
+          "example": 5
+        },
+        "qualityOut": {
+          "type": "number",
+          "example": 10
+        }
+      }
+    },
+    "TrustSetResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": {
+              "type": "string",
+              "example": "ABCDEF0123456789"
+            },
+            "meta": {
+              "type": "object",
+              "properties": {}
+            },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "TrustSet"
+                }
+              }
+            }
+          }
+        },
+        "id": {
+          "type": "string",
+          "example": "string"
+        }
+      }
+    },
+    "XrpTransferRequest": {
+      "type": "object",
+      "properties": {
+        "destination": {
+          "type": "string",
+          "example": "rDestination"
+        },
+        "amount": {
+          "type": "string",
+          "example": "100"
+        },
+        "note": {
+          "type": "string",
+          "example": "Test transfer"
+        }
+      }
+    },
+    "XrpTransferResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "string"
+        },
+        "status": {
+          "type": "string",
+          "example": "SUBMITTED"
+        },
+        "createdAt": {
+          "type": "number",
+          "example": 1717570786980
+        },
+        "assetId": {
+          "type": "string",
+          "example": "XRP"
+        },
+        "source": {
+          "type": "object",
+          "properties": {}
+        },
+        "destination": {
+          "type": "object",
+          "properties": {}
+        },
+        "txHash": {
+          "type": "string",
+          "example": "ABCDEF0123456789"
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string",
+          "example": "Error message"
+        },
+        "message": {
+          "type": "string",
+          "example": "Detailed error message"
+        }
+      }
+    }
+  }
+}

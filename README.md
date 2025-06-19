@@ -71,21 +71,21 @@ start by copying `.env.example` to `.env` and editing for your environment:
 cp .env.example .env
 ```
 
-| Variable Name                   | Required | Default  | Purpose                                                                                                                |
-| ------------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `FIREBLOCKS_API_KEY`            |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
-| `FIREBLOCKS_API_SECRET`         |   Yes    | –        | Path or inline string of Fireblocks private key                                                                        |
-| `FIREBLOCKS_VAULT_ACCOUNT_ID`   |   Yes    | –        | Vault account to use for transactions                                                                                  |
-| `FIREBLOCKS_ASSET_ID`           |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
-| `FIREBLOCKS_BASE_PATH`          |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
-| `SDK_LOG_LEVEL`                 |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
-| `PORT`                          |    No    | 3000     | API server port (REST mode)                                                                                            |
+| Variable Name                 | Required | Default  | Purpose                                                                                                                |
+| ----------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `FIREBLOCKS_API_KEY`          |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
+| `FIREBLOCKS_API_SECRET`       |   Yes    | –        | Path or inline string of Fireblocks private key                                                                        |
+| `FIREBLOCKS_VAULT_ACCOUNT_ID` |   Yes    | –        | Vault account to use for transactions                                                                                  |
+| `FIREBLOCKS_ASSET_ID`         |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
+| `FIREBLOCKS_BASE_PATH`        |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
+| `SDK_LOG_LEVEL`               |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
+| `PORT`                        |    No    | 3000     | API server port (REST mode)                                                                                            |
 
 ---
 
 ## 🔑 Mounting Your Fireblocks Private Key in Docker
 
-The SDK and REST API require access to your Fireblocks API private key (FIREBLOCKS_API_PATH_TO_SECRET) for signing and secure communication with Fireblocks.
+The SDK and REST API require access to your Fireblocks API private key (FIREBLOCKS_API_SECRET) for signing and secure communication with Fireblocks.
 When running inside Docker, you must mount this file and reference it correctly.
 
 1. Store Your Private Key
@@ -107,7 +107,7 @@ your-project-root/
    Set the environment variable in your `.env` file to match the path inside the container:
 
 ```bash
-FIREBLOCKS_API_PATH_TO_SECRET=/secrets/fireblocks_secret.key
+FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
 ```
 
 3. How Docker Compose Mounts the Key
@@ -126,7 +126,7 @@ services:
       - "3000:3000"
     env_file: ./.env
     environment:
-      - FIREBLOCKS_API_PATH_TO_SECRET=/secrets/fireblocks_secret.key
+      - FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
     restart: unless-stopped
 ```
 
@@ -136,7 +136,7 @@ Your private key is available in the container at `/secrets/fireblocks_secret.ke
 
 The `.env` file with your Fireblocks credentials is available at `/app/.env`.
 
-The `FIREBLOCKS_API_PATH_TO_SECRET` environment variable tells the SDK where to find the key.
+The `FIREBLOCKS_API_SECRET` environment variable tells the SDK where to find the key.
 
 4. Running the API Server
    Build and run the container with:
@@ -167,7 +167,7 @@ dotenv.config();
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
@@ -388,9 +388,16 @@ _All REST API routes and sample payloads are included for testing._
 
 ---
 
-## 📚 API Reference
+## 📚 API & Documentation Endpoints
 
-Endpoints documentation is shared as swagger API in the `/docs/` folder.
+The running API server exposes interactive documentation and SDK reference for easier integration and onboarding:
+
+| Purpose               | URL                               | Description                                               |
+| --------------------- | --------------------------------- | --------------------------------------------------------- |
+| **Swagger UI**        | `http://localhost:3000/api-docs`  | Interactive REST API explorer for all endpoints.          |
+| **TypeDoc Reference** | `http://localhost:3000/type-docs` | SDK Classes/Methods documentation (generated by TypeDoc). |
+
+> Both URLs assume default port `3000`—change if you modify your server port.
 
 **DEX Routes:**
 

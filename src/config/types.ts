@@ -132,29 +132,6 @@ export interface TrustSetOpts {
 }
 
 /**
- * Options for issuing a new fungible token:
- *  • currency is a 3 charachters string or a 160-bit hex.
- *  • initialSupply is a decimal string > 0
- *  • recipients (optional) is a list of address→amount mappings
- *  • issuerConfig is an AccountSetConfig for the issuer
- *  • memos (optional) to attach to each issuance tx
- */
-export interface IssueTokenOptions {
-  currency: string;
-  initialSupply: string;
-  issuerConfig?: AccountSetConfig;
-  memos?: Memo[];
-}
-
-/**
- * Options specifically for a distribution account’s AccountSet.
- */
-export interface DistributionAccountSetOpts {
-  issuerConfig?: AccountSetConfig;
-  memos?: Memo[];
-}
-
-/**
  * Base “payment-like” options shared by many flows:
  *  • memos, invoiceId, destinationTag often re-appear.
  */

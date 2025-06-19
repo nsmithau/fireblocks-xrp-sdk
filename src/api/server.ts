@@ -8,6 +8,9 @@ import { Logger } from "../utils/logger";
 import { ApiServiceConfig } from "../pool/types";
 import { errorHandler } from "./middleware";
 import { ValidationError } from "../errors/errors";
+import fs from "fs";
+import path from "path";
+import swaggerUi from "swagger-ui-express";
 
 // Load environment variables
 dotenv.config();
@@ -21,7 +24,7 @@ app.use(express.json());
 app.use(cors());
 const fbksXrpApiServiceConfigs: ApiServiceConfig = {
   apiKey: process.env.FIREBLOCKS_API_KEY || "",
-  apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+  apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
   assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
   basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   poolConfig: {
@@ -48,6 +51,23 @@ if (fbksXrpApiServiceConfigs.apiSecret === "") {
     "FIREBLOCKS_API_SECRET is required"
   );
 }
+
+// Read the generated swagger.json
+const swaggerFile = path.join("./", "swagger.json");
+if (fs.existsSync(swaggerFile)) {
+  const swaggerDocument = JSON.parse(fs.readFileSync(swaggerFile, "utf8"));
+
+  // Setup Swagger UI
+  app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+  logger.info("Swagger documentation enabled");
+} else {
+  logger.warn(
+    'swagger.json not found. Run "npm run generate-swagger" to generate it.'
+  );
+}
+// Serve the generated TypeDoc HTML docs at /type-docs
+app.use("/type-docs", express.static(path.join(process.cwd(), "docs")));
 
 // Initialize API service
 const fbksApiService = new FbksXrpApiService(fbksXrpApiServiceConfigs);

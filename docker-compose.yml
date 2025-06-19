@@ -10,5 +10,5 @@ services:
       - "3000:3000"
     env_file: ./.env
     environment:
-      - FIREBLOCKS_API_PATH_TO_SECRET=/secrets/fireblocks_secret.key
+      - FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
     restart: unless-stopped
