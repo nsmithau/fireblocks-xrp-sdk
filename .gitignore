@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+secrets/
+*.log
+.env
+.DS_Store
+.vscode/
+*.key
+test.ts
