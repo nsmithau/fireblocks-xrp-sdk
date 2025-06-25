@@ -1,7 +1,11 @@
 import { BasePath, TransactionResponse } from "@fireblocks/ts-sdk";
 import { TxResponse } from "xrpl";
 import { SdkManager } from "../pool/SdkManager";
-import { ApiServiceConfig, TransactionType } from "../pool/types";
+import {
+  ApiServiceConfig,
+  SdkManagerMetrics,
+  TransactionType,
+} from "../pool/types";
 import {
   OfferCreateOpts,
   OfferCancelOpts,
@@ -172,7 +176,7 @@ export class FbksXrpApiService {
   /**
    * Get metrics about the SDK pool
    */
-  public getPoolMetrics() {
+  public getPoolMetrics(): SdkManagerMetrics {
     return this.sdkManager.getMetrics();
   }
 
