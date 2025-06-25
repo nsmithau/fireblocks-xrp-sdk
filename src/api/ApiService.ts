@@ -24,6 +24,55 @@ export class FbksXrpApiService {
   private sdkManager: SdkManager;
 
   constructor(config: ApiServiceConfig) {
+    if (!config || typeof config !== "object") {
+      throw new ValidationError("InvalidConfig", "Config object is required.");
+    }
+    if (
+      !config.apiKey ||
+      typeof config.apiKey !== "string" ||
+      !config.apiKey.trim()
+    ) {
+      throw new ValidationError(
+        "InvalidConfig",
+        "apiKey must be a non-empty string."
+      );
+    }
+    if (
+      !config.apiSecret ||
+      typeof config.apiSecret !== "string" ||
+      !config.apiSecret.trim()
+    ) {
+      throw new ValidationError(
+        "InvalidConfig",
+        "apiSecret must be a non-empty string."
+      );
+    }
+    if (
+      !config.assetId ||
+      typeof config.assetId !== "string" ||
+      !config.assetId.trim()
+    ) {
+      throw new ValidationError(
+        "InvalidConfig",
+        "assetId must be a non-empty string."
+      );
+    }
+    if (
+      config.basePath &&
+      !Object.values(BasePath).includes(config.basePath as BasePath)
+    ) {
+      throw new ValidationError(
+        "InvalidConfig",
+        `basePath must be one of: ${Object.values(BasePath).join(", ")}`
+      );
+    }
+    if (config.poolConfig && typeof config.poolConfig !== "object") {
+      throw new ValidationError(
+        "InvalidConfig",
+        "poolConfig must be an object if provided."
+      );
+    }
+
     const baseConfig = {
       apiKey: config.apiKey,
       apiSecret: config.apiSecret,
