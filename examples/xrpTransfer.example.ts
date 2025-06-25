@@ -16,8 +16,8 @@ import { BasePath } from "@fireblocks/ts-sdk";
           address: "rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB",
         },
       },
-      amount: "50",
-      note: "Test transfer of 50 xrp-test from Fireblocks SDK",
+      amount: "2",
+      note: "Test transfer of 2 xrp-test from Fireblocks SDK",
     };
     const res = await apiService.executeTransaction(
       process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",

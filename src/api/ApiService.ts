@@ -81,12 +81,8 @@ export class FbksXrpApiService {
           result = await sdk.clawback(params as ClawbackOpts);
           break;
         case TransactionType.XRP_TRANSFER:
-          const { destination, amount, note } = params as XrpTransferOpts;
-          result = await sdk.xrpTransfer({
-            destination,
-            amount,
-            note,
-          });
+          // const { destination, amount, note } =
+          result = await sdk.xrpTransfer(params as XrpTransferOpts);
           break;
         default:
           logger.error(
