@@ -273,7 +273,7 @@ curl -X POST http://localhost:3000/api/dex/offerCreate/<vaultAccountId> \
 
 #### 4. Postman Collection
 
-Import [`Fireblocks-XRP-SDK-API.postman_collection.json`](./docs/Fireblocks-XRP-SDK-API.postman_collection.json)
+Import [`Fireblocks-XRP-SDK-API.postman_collection.json`](https://github.com/fireblocks/fireblocks-xrp-sdk/blob/main/Fireblocks-XRP-SDK-API.postman_collection.json)
 _All REST API routes and sample payloads are included for testing._
 
 ### 5. Success Response JSON Example
