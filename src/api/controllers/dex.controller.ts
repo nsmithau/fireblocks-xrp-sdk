@@ -5,12 +5,12 @@ import { TransactionType } from "../../pool/types";
 
 const logger = new Logger("dex-controller");
 
-export async function offerCreate(
+export const offerCreate = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating OfferCreate Transaction, parameters:", req.body);
     const txRes = await api.executeTransaction(
@@ -23,14 +23,14 @@ export async function offerCreate(
     logger.error("Error in Offer Create:", error);
     next(error);
   }
-}
+};
 
-export async function offerCancel(
+export const offerCancel = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating OfferCancel Transaction");
     const txRes = await api.executeTransaction(
@@ -43,14 +43,14 @@ export async function offerCancel(
     logger.error("Error in OfferCancel:", error);
     next(error);
   }
-}
+};
 
-export async function crossCurrencyPayment(
+export const crossCurrencyPayment = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating Cross Currency Payment Transaction");
     const txRes = await api.executeTransaction(
@@ -63,4 +63,4 @@ export async function crossCurrencyPayment(
     logger.error("Error in Cross Currency Payment:", error);
     next(error);
   }
-}
+};

@@ -91,7 +91,7 @@ export class FbksXrpApiService {
   /**
    * Execute a transaction using the appropriate SDK method
    */
-  public async executeTransaction(
+  public executeTransaction = async (
     vaultAccountId: string,
     transactionType: TransactionType,
     params:
@@ -106,7 +106,7 @@ export class FbksXrpApiService {
       | FreezeTokenOpts
       | ClawbackOpts
       | XrpTransferOpts
-  ): Promise<TxResponse | TransactionResponse> {
+  ): Promise<TxResponse | TransactionResponse> => {
     let sdk: FireblocksXrpSdk;
     try {
       // Get SDK instance from the pool
@@ -171,19 +171,19 @@ export class FbksXrpApiService {
         this.sdkManager.releaseSdk(vaultAccountId);
       }
     }
-  }
+  };
 
   /**
    * Get metrics about the SDK pool
    */
-  public getPoolMetrics(): SdkManagerMetrics {
+  public getPoolMetrics = (): SdkManagerMetrics => {
     return this.sdkManager.getMetrics();
-  }
+  };
 
   /**
    * Shut down the API service and all SDK instances
    */
-  public async shutdown(): Promise<void> {
+  public shutdown = async (): Promise<void> => {
     return this.sdkManager.shutdown();
-  }
+  };
 }
