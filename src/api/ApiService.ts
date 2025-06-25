@@ -90,7 +90,18 @@ export class FbksXrpApiService {
   public async executeTransaction(
     vaultAccountId: string,
     transactionType: TransactionType,
-    params: any
+    params:
+      | OfferCreateOpts
+      | OfferCancelOpts
+      | OfferCancelOpts
+      | CrossCurrencyPaymentOpts
+      | AccountSetOpts
+      | TrustSetOpts
+      | TokenTransferOpts
+      | BurnTokenOpts
+      | FreezeTokenOpts
+      | ClawbackOpts
+      | XrpTransferOpts
   ): Promise<TxResponse | TransactionResponse> {
     let sdk: FireblocksXrpSdk;
     try {
