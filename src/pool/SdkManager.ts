@@ -46,7 +46,7 @@ export class SdkManager {
    * @param vaultAccountId Fireblocks vault account ID
    * @returns FireblocksXrpSdk instance
    */
-  public async getSdk(vaultAccountId: string): Promise<FireblocksXrpSdk> {
+  public getSdk = async (vaultAccountId: string): Promise<FireblocksXrpSdk> => {
     // Check if we already have an instance for this vault account
     const poolItem = this.sdkPool.get(vaultAccountId);
 
@@ -97,28 +97,28 @@ export class SdkManager {
       poolItem.isInUse = true;
       return poolItem.sdk;
     }
-  }
+  };
 
   /**
    * Release an SDK instance back to the pool
    * @param vaultAccountId Vault account ID
    */
-  public releaseSdk(vaultAccountId: string): void {
+  public releaseSdk = (vaultAccountId: string): void => {
     const poolItem = this.sdkPool.get(vaultAccountId);
     if (poolItem) {
       poolItem.isInUse = false;
       poolItem.lastUsed = new Date();
     }
-  }
+  };
 
   /**
    * Create a new SDK instance
    * @param vaultAccountId Vault account ID
    * @returns New FireblocksXrpSdk instance
    */
-  private async createSdkInstance(
+  private createSdkInstance = async (
     vaultAccountId: string
-  ): Promise<FireblocksXrpSdk> {
+  ): Promise<FireblocksXrpSdk> => {
     const config: FireblocksConfig = {
       ...this.baseConfig,
       vaultAccountId,
@@ -139,13 +139,13 @@ export class SdkManager {
         `Failed to create SDK instance for vault ${vaultAccountId}: ${error}`
       );
     }
-  }
+  };
 
   /**
    * Find and remove the oldest idle SDK instance
    * @returns True if an instance was removed, false otherwise
    */
-  private async removeOldestIdleSdk(): Promise<boolean> {
+  private removeOldestIdleSdk = async (): Promise<boolean> => {
     let oldestKey: string | null = null;
     let oldestDate: Date = new Date();
 
@@ -166,12 +166,12 @@ export class SdkManager {
     }
 
     return false;
-  }
+  };
 
   /**
    * Clean up idle SDK instances
    */
-  private async cleanupIdleSdks(): Promise<void> {
+  private cleanupIdleSdks = async (): Promise<void> => {
     const now = new Date();
     const keysToRemove: string[] = [];
 
@@ -194,12 +194,12 @@ export class SdkManager {
         logger.error(`Error shutting down SDK for vault ${key}:`, error);
       }
     }
-  }
+  };
 
   /**
    * Get metrics about the SDK pool
    */
-  public getMetrics(): SdkManagerMetrics {
+  public getMetrics = (): SdkManagerMetrics => {
     const metrics: SdkManagerMetrics = {
       totalInstances: this.sdkPool.size,
       activeInstances: 0,
@@ -217,12 +217,12 @@ export class SdkManager {
     }
 
     return metrics;
-  }
+  };
 
   /**
    * Shut down all SDK instances and clean up resources
    */
-  public async shutdown(): Promise<void> {
+  public shutdown = async (): Promise<void> => {
     clearInterval(this.cleanupInterval);
 
     for (const [key, value] of this.sdkPool.entries()) {
@@ -236,5 +236,5 @@ export class SdkManager {
 
     this.sdkPool.clear();
     logger.info("All SDK instances have been shut down");
-  }
+  };
 }

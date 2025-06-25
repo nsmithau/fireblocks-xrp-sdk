@@ -5,12 +5,12 @@ import { TransactionType } from "../../pool/types";
 
 const logger = new Logger("token-controller");
 
-export async function tokenTransfer(
+export const tokenTransfer = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating Token Transfer Transaction");
     const txRes = await api.executeTransaction(
@@ -23,14 +23,14 @@ export async function tokenTransfer(
     logger.error("Error in Token Transfer:", error);
     next(error);
   }
-}
+};
 
-export async function accountSet(
+export const accountSet = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating AccountSet Transaction");
     const txRes = await api.executeTransaction(
@@ -43,14 +43,14 @@ export async function accountSet(
     logger.error("Error in AccountSet:", error);
     next(error);
   }
-}
+};
 
-export async function burnToken(
+export const burnToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating a Burn Token Transaction");
     const txRes = await api.executeTransaction(
@@ -63,14 +63,14 @@ export async function burnToken(
     logger.error("Error in burnToken:", error);
     next(error);
   }
-}
+};
 
-export async function clawback(
+export const clawback = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating Clawback Transaction");
     const txRes = await api.executeTransaction(
@@ -83,14 +83,14 @@ export async function clawback(
     logger.error("Error in Clawback:", error);
     next(error);
   }
-}
+};
 
-export async function freezeToken(
+export const freezeToken = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating a Freeze Token Transaction");
     const txRes = await api.executeTransaction(
@@ -103,14 +103,14 @@ export async function freezeToken(
     logger.error("Error in freezeToken:", error);
     next(error);
   }
-}
+};
 
-export async function trustSet(
+export const trustSet = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating a Trust Set Transaction");
     const txRes = await api.executeTransaction(
@@ -123,14 +123,14 @@ export async function trustSet(
     logger.error("Error in trustSet:", error);
     next(error);
   }
-}
+};
 
-export async function xrpTransfer(
+export const xrpTransfer = async (
   req: Request,
   res: Response,
   next: NextFunction,
   api: FbksXrpApiService
-) {
+) => {
   try {
     logger.info("Creating an XRP Transfer Transaction");
     const txRes = await api.executeTransaction(
@@ -143,4 +143,4 @@ export async function xrpTransfer(
     logger.error("Error in xrpTransfer:", error);
     next(error);
   }
-}
+};

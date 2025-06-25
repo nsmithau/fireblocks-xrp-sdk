@@ -43,10 +43,52 @@ describe("FbksXrpApiService", () => {
       apiKey: "key",
       apiSecret: "secret",
       assetId: "XRP_TEST",
-      basePath: "US",
+      basePath: "https://api.fireblocks.io/v1",
       poolConfig: { maxPoolSize: 2, idleTimeoutMs: 10000 },
     });
   });
+
+  // Minimal valid params for each transaction type
+  const minimalParams: Record<TransactionType, any> = {
+    offerCreate: {
+      sellAmount: { currency: "USD", issuer: "rIssuer", value: "1" },
+      buyAmount: { currency: "BTC", issuer: "rIssuer", value: "0.00001" },
+    },
+    offerCancel: {
+      offerSequence: 1,
+    },
+    crossCurrencyPayment: {
+      destination: "rDest",
+      amount: { currency: "USD", issuer: "rIssuer", value: "1" },
+    },
+    accountSet: {
+      configs: {},
+    },
+    trustSet: {
+      limitAmount: { currency: "USD", issuer: "rIssuer", value: "1" },
+    },
+    tokenTransfer: {
+      destination: "rDest",
+      amount: { currency: "USD", issuer: "rIssuer", value: "1" },
+    },
+    burnToken: {
+      amount: { currency: "USD", issuer: "rIssuer", value: "1" },
+    },
+    freezeToken: {
+      holder: "rHolder",
+      currency: "USD",
+      freeze: true,
+    },
+    clawback: {
+      holder: "rHolder",
+      currency: "USD",
+      value: "1",
+    },
+    xrpTransfer: {
+      destination: "rDest",
+      amount: "1",
+    },
+  };
 
   const testCases = [
     [TransactionType.OFFER_CREATE, "offerCreate"],
@@ -66,15 +108,17 @@ describe("FbksXrpApiService", () => {
       const mockResult = { success: true };
       (mockSdkInstance as any)[method].mockResolvedValueOnce(mockResult);
 
-      const result = await service.executeTransaction("vault123", txType, {
-        foo: "bar",
-      });
+      const result = await service.executeTransaction(
+        "vault123",
+        txType,
+        minimalParams[txType]
+      );
 
       expect(result).toEqual(mockResult);
       expect(mockGetSdk).toHaveBeenCalledWith("vault123");
-      expect((mockSdkInstance as any)[method]).toHaveBeenCalledWith({
-        foo: "bar",
-      });
+      expect((mockSdkInstance as any)[method]).toHaveBeenCalledWith(
+        minimalParams[txType]
+      );
       expect(mockReleaseSdk).toHaveBeenCalledWith("vault123");
     }
   );
@@ -83,11 +127,7 @@ describe("FbksXrpApiService", () => {
     const result = { txId: "abc" };
     mockSdkInstance.xrpTransfer.mockResolvedValue(result);
 
-    const params = {
-      destination: "rXYZ",
-      amount: "123",
-      note: "memo",
-    };
+    const params = minimalParams.xrpTransfer;
 
     const res = await service.executeTransaction(
       "vaultX",
@@ -105,7 +145,7 @@ describe("FbksXrpApiService", () => {
       service.executeTransaction(
         "vault1",
         "INVALID_TYPE" as TransactionType,
-        {}
+        minimalParams.offerCreate
       )
     ).rejects.toThrow(ValidationError);
 
@@ -116,7 +156,11 @@ describe("FbksXrpApiService", () => {
     mockSdkInstance.trustSet.mockRejectedValue(new Error("Simulated failure"));
 
     await expect(
-      service.executeTransaction("vaultFail", TransactionType.TRUST_SET, {})
+      service.executeTransaction(
+        "vaultFail",
+        TransactionType.TRUST_SET,
+        minimalParams.trustSet
+      )
     ).rejects.toThrow("Simulated failure");
 
     expect(mockReleaseSdk).toHaveBeenCalledWith("vaultFail");

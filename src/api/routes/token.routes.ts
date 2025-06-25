@@ -7,7 +7,7 @@ import { log } from "console";
 
 const logger = new Logger("token-routes");
 
-export function configureTokenRoutes(api: FbksXrpApiService): Router {
+export const configureTokenRoutes = (api: FbksXrpApiService): Router => {
   const router = Router();
 
   const tokenRoutes = [
@@ -36,14 +36,12 @@ export function configureTokenRoutes(api: FbksXrpApiService): Router {
     );
     router.post(`/api/token/${path}`, (req: Request, res: Response) => {
       logger.error(`Missing vault account ID for ${path} request`);
-      res
-        .status(400)
-        .json({
-          error: "Missing vault account ID",
-          message: "Vault account Id is missing from the request URL",
-        });
+      res.status(400).json({
+        error: "Missing vault account ID",
+        message: "Vault account Id is missing from the request URL",
+      });
     });
   }
 
   return router;
-}
+};

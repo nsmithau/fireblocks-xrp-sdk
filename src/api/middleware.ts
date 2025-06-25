@@ -19,7 +19,7 @@ export const validateVaultAccount = (
 };
 
 //middleware to handle errors
-export function errorHandler(err, req, res, next) {
+export const errorHandler = (err, req, res, next) => {
   if (err instanceof ValidationError) {
     res.status(400).json({ error: "ValidationError", message: err.message });
   } else if (err instanceof SigningError) {
@@ -27,12 +27,16 @@ export function errorHandler(err, req, res, next) {
   } else {
     res.status(500).json({ error: "Unknown Error", message: err.message });
   }
-}
+};
 
 /**
  * Middleware to check that req.body exists and is a valid object.
  */
-export function requireBody(req: Request, res: Response, next: NextFunction) {
+export const requireBody = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
     throw new ValidationError(
       "InvalidBody",
@@ -40,4 +44,4 @@ export function requireBody(req: Request, res: Response, next: NextFunction) {
     );
   }
   next();
-}
+};

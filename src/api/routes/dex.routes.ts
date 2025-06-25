@@ -6,7 +6,7 @@ import { Logger } from "../../utils/logger";
 
 const logger = new Logger("dex-routes");
 
-export function configureDexRoutes(api: FbksXrpApiService): Router {
+export const configureDexRoutes = (api: FbksXrpApiService): Router => {
   const router = Router();
 
   const dexRoutes = [
@@ -31,14 +31,12 @@ export function configureDexRoutes(api: FbksXrpApiService): Router {
     );
     router.post(`/api/dex/${path}`, (req: Request, res: Response) => {
       logger.error(`Missing vault account ID for ${path} request`);
-      res
-        .status(400)
-        .json({
-          error: "Missing vault account ID",
-          message: "Vault account Id is missing from the request URL",
-        });
+      res.status(400).json({
+        error: "Missing vault account ID",
+        message: "Vault account Id is missing from the request URL",
+      });
     });
   }
 
   return router;
-}
+};
