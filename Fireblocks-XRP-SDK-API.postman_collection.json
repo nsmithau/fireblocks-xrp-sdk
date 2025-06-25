@@ -1,0 +1,354 @@
+{
+	"info": {
+		"_postman_id": "fc3ae07c-3c28-4f1d-8d9c-53c0f40ca63e",
+		"name": "Fireblocks-XRP-SDK-API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31943430"
+	},
+	"item": [
+		{
+			"name": "dex",
+			"item": [
+				{
+					"name": "offerCreate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \n      \"sellAmount\": \"10\",\n      \"buyAmount\": {\n        \"currency\": \"THT\",\n        \"issuer\": \"rpbkpPF8PrPuMN8NgEVkCsJDCWwP9KePFq\",\n        \"value\": \"2\"\n      },\n      \"flags\": {\n        \"tfPassiveOffer\": true,\n        \"tfSellOffer\": true\n      }\n    } \n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/offerCreate/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"offerCreate",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "crossCurrencyPayment",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"destination\": \"rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB\",\n    \"amount\": {\n        \"currency\": \"THT\",\n        \"issuer\": \"rpbkpPF8PrPuMN8NgEVkCsJDCWwP9KePFq\",\n        \"value\": \"100\"\n    },\n    \"flags\": {\n        \"tfPartialPayment\": true\n    },\n    \"sendMax\": \"100\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/crossCurrencyPayment/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"crossCurrencyPayment",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "offerCancel",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{ \"offerSequence\": 7855630 }\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/offerCancel/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"offerCancel",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "token",
+			"item": [
+				{
+					"name": "xrpTransfer",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"destination\": {\n        \"type\": \"ONE_TIME_ADDRESS\",\n        \"oneTimeAddress\": {\n          \"address\": \"rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB\"\n        }\n      },\n      \"amount\": \"1\",\n      \"note\": \"Test transfer of 1 XRP_TEST from Fireblocks SDK\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/xrpTransfer/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"xrpTransfer",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "tokenTransfer",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"destination\": \"rfSeUdwJC4ejRZ3mNfdH7KMWPyGGx6UTmf\",\n      \"amount\": {\n        \"currency\": \"THT\",\n        \"issuer\": \"rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS\",\n        \"value\": \"10\"\n      }\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/tokenTransfer/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"tokenTransfer",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "accountSet",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"configs\": {\n        \"setFlag\": {\n            \"asfDefaultRipple\": true\n        },\n        \"tfFlags\": {\n            \"tfRequireDestTag\": true\n        },\n        \"domain\": \"example.com\",\n        \"transferRate\": 1000000000,\n        \"tickSize\": 5\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/accountSet/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"accountSet",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "trustSet",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"limitAmount\": {\n        \"currency\": \"FBX\",\n        \"issuer\": \"rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS\",\n        \"value\": \"10000\"\n      }\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/trustSet/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"trustSet",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "freezeToken",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"holder\": \"rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB\",\n      \"currency\": \"FBX\",\n      \"freeze\": true\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/freezeToken/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"freezeToken",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "burnToken",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"amount\": {\n        \"currency\": \"FBX\",\n        \"issuer\": \"rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS\",\n        \"value\": \"45\"\n      }\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/burnToken/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"burnToken",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "clawback",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n      \"holder\": \"rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB\",\n      \"currency\": \"FBX\",\n      \"value\": \"55\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/token/clawback/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"token",
+								"clawback",
+								"0"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
