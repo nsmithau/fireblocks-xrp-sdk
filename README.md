@@ -474,6 +474,6 @@ MIT License
 
 ## 💬 Support
 
-For setup help, troubleshooting, or feature requests, please contact [Fireblocks Support](https://www.fireblocks.com/support/).
+For setup help, troubleshooting, or feature requests, please contact Fireblocks Professional Services team.
 
 ---
