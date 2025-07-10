@@ -4,6 +4,7 @@ import {
   TransactionType,
 } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -14,7 +15,7 @@ import { BasePath } from "@fireblocks/ts-sdk";
   });
 
   try {
-    const opts: CrossCurrencyPaymentOpts = {
+    const params: CrossCurrencyPaymentOpts = {
       destination: "rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB",
       amount: {
         currency: "THT",
@@ -27,11 +28,13 @@ import { BasePath } from "@fireblocks/ts-sdk";
       sendMax: "100",
     };
 
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.CROSS_CURRENCY_PAYMENT,
-      opts
-    );
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
+      params,
+    };
+
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

@@ -13,11 +13,11 @@ export const tokenTransfer = async (
 ) => {
   try {
     logger.info("Creating Token Transfer Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.TOKEN_TRANSFER,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.TOKEN_TRANSFER,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in Token Transfer:", error);
@@ -33,11 +33,11 @@ export const accountSet = async (
 ) => {
   try {
     logger.info("Creating AccountSet Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.ACCOUNT_SET,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.ACCOUNT_SET,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in AccountSet:", error);
@@ -53,11 +53,11 @@ export const burnToken = async (
 ) => {
   try {
     logger.info("Creating a Burn Token Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.BURN_TOKEN,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.BURN_TOKEN,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in burnToken:", error);
@@ -73,11 +73,11 @@ export const clawback = async (
 ) => {
   try {
     logger.info("Creating Clawback Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.CLAWBACK,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.CLAWBACK,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in Clawback:", error);
@@ -93,11 +93,11 @@ export const freezeToken = async (
 ) => {
   try {
     logger.info("Creating a Freeze Token Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.FREEZE_TOKEN,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.FREEZE_TOKEN,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in freezeToken:", error);
@@ -113,11 +113,11 @@ export const trustSet = async (
 ) => {
   try {
     logger.info("Creating a Trust Set Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.TRUST_SET,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.TRUST_SET,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in trustSet:", error);
@@ -133,11 +133,11 @@ export const xrpTransfer = async (
 ) => {
   try {
     logger.info("Creating an XRP Transfer Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.XRP_TRANSFER,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.XRP_TRANSFER,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in xrpTransfer:", error);

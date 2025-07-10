@@ -13,11 +13,11 @@ export const offerCreate = async (
 ) => {
   try {
     logger.info("Creating OfferCreate Transaction, parameters:", req.body);
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.OFFER_CREATE,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.OFFER_CREATE,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in Offer Create:", error);
@@ -33,11 +33,11 @@ export const offerCancel = async (
 ) => {
   try {
     logger.info("Creating OfferCancel Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.OFFER_CANCEL,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.OFFER_CANCEL,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in OfferCancel:", error);
@@ -53,11 +53,11 @@ export const crossCurrencyPayment = async (
 ) => {
   try {
     logger.info("Creating Cross Currency Payment Transaction");
-    const txRes = await api.executeTransaction(
-      req.params.vaultAccountId,
-      TransactionType.CROSS_CURRENCY_PAYMENT,
-      req.body
-    );
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
+      params: req.body,
+    });
     res.status(200).json(txRes);
   } catch (error) {
     logger.error("Error in Cross Currency Payment:", error);

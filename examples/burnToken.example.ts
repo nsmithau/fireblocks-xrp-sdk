@@ -1,5 +1,6 @@
 import { FbksXrpApiService, BurnTokenOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -9,19 +10,20 @@ import { BasePath } from "@fireblocks/ts-sdk";
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
   try {
-    const opts: BurnTokenOpts = {
+    const params: BurnTokenOpts = {
       amount: {
         currency: "FBX",
         issuer: "rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS",
         value: "45",
       },
     };
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.BURN_TOKEN,
+      params,
+    };
 
-    const res = await await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.BURN_TOKEN,
-      opts
-    );
+    const res = await await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

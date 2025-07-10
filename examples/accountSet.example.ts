@@ -1,5 +1,6 @@
 import { FbksXrpApiService, AccountSetOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -9,7 +10,7 @@ import { BasePath } from "@fireblocks/ts-sdk";
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
   try {
-    const configs: AccountSetOpts = {
+    const params: AccountSetOpts = {
       configs: {
         setFlag: {
           asfDefaultRipple: true,
@@ -23,11 +24,12 @@ import { BasePath } from "@fireblocks/ts-sdk";
         tickSize: 5,
       },
     };
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.ACCOUNT_SET,
-      configs
-    );
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.ACCOUNT_SET,
+      params,
+    };
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

@@ -6,6 +6,14 @@ import {
 import { TransactionType } from "../../../src/pool/types";
 import { FbksXrpApiService } from "../../../src/api/ApiService";
 
+// Mock the logger to keep output clean during tests
+jest.mock("../../../src/utils/logger", () => ({
+  Logger: jest.fn().mockImplementation(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+  })),
+}));
+
 describe("dex.controller", () => {
   let mockApi: jest.Mocked<FbksXrpApiService>;
   let req: any;
@@ -38,13 +46,14 @@ describe("dex.controller", () => {
 
       await offerCreate(req, res, next, mockApi);
 
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith(
-        "vault123",
-        TransactionType.OFFER_CREATE,
-        { foo: "bar" }
-      );
+      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+        vaultAccountId: "vault123",
+        transactionType: TransactionType.OFFER_CREATE,
+        params: { foo: "bar" },
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(fakeResponse);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle error and call next", async () => {
@@ -54,6 +63,8 @@ describe("dex.controller", () => {
       await offerCreate(req, res, next, mockApi);
 
       expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -64,13 +75,14 @@ describe("dex.controller", () => {
 
       await offerCancel(req, res, next, mockApi);
 
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith(
-        "vault123",
-        TransactionType.OFFER_CANCEL,
-        { foo: "bar" }
-      );
+      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+        vaultAccountId: "vault123",
+        transactionType: TransactionType.OFFER_CANCEL,
+        params: { foo: "bar" },
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(fakeResponse);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle error and call next", async () => {
@@ -80,6 +92,8 @@ describe("dex.controller", () => {
       await offerCancel(req, res, next, mockApi);
 
       expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 
@@ -90,13 +104,14 @@ describe("dex.controller", () => {
 
       await crossCurrencyPayment(req, res, next, mockApi);
 
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith(
-        "vault123",
-        TransactionType.CROSS_CURRENCY_PAYMENT,
-        { foo: "bar" }
-      );
+      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+        vaultAccountId: "vault123",
+        transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
+        params: { foo: "bar" },
+      });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith(fakeResponse);
+      expect(next).not.toHaveBeenCalled();
     });
 
     it("should handle error and call next", async () => {
@@ -106,6 +121,8 @@ describe("dex.controller", () => {
       await crossCurrencyPayment(req, res, next, mockApi);
 
       expect(next).toHaveBeenCalledWith(error);
+      expect(res.status).not.toHaveBeenCalled();
+      expect(res.json).not.toHaveBeenCalled();
     });
   });
 });

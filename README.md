@@ -10,7 +10,7 @@ A stateless SDK and REST API server for Fireblocks customers, simplifying advanc
 Built for Fireblocks customers who want seamless DEX, token, and issuer operations on Ripple.
 
 > **Disclaimer**  
-> This SDK relies on Fireblocks' RAW signing capabilities. Customers are fully responsible for safe usage, setup, and transaction outcomes. Fireblocks is not liable for any loss of funds resulting from the use of this code. Contact the Fireblocks Professional Services team for assistance. 
+> This SDK relies on Fireblocks' RAW signing capabilities. Customers are fully responsible for safe usage, setup, and transaction outcomes. Fireblocks is not liable for any loss of funds resulting from the use of this code. Contact the Fireblocks Professional Services team for assistance.
 
 ### **Prerequisites**
 
@@ -172,7 +172,7 @@ dotenv.config();
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
 
-  const opts = {
+  const params = {
     sellAmount: "10",
     buyAmount: {
       currency: "THT",
@@ -185,11 +185,13 @@ dotenv.config();
     },
   };
 
-  const res = await apiService.executeTransaction(
-    process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-    TransactionType.OFFER_CREATE,
-    opts
-  );
+  const opts: ExecuteTransactionOpts = {
+    vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+    transactionType: TransactionType.OFFER_CREATE,
+    params,
+  };
+
+  const res = await apiService.executeTransaction(opts);
 
   if ("result" in res) {
     console.log(`Tx submitted: ${res.result.hash}`);

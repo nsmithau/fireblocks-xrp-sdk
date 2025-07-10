@@ -1,5 +1,6 @@
 import { FbksXrpApiService, ClawbackOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -10,17 +11,18 @@ import { BasePath } from "@fireblocks/ts-sdk";
   });
   try {
     // Specify the token holder, currency, and amount to claw back. The issuer is not needed as it will be set dynamically as sdk.address
-    const opts: ClawbackOpts = {
+    const params: ClawbackOpts = {
       holder: "rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB",
       currency: "FBX",
       value: "55",
     };
 
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.CLAWBACK,
-      opts
-    );
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.CLAWBACK,
+      params,
+    };
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

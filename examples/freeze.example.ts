@@ -1,5 +1,6 @@
 import { FbksXrpApiService, FreezeTokenOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -9,17 +10,18 @@ import { BasePath } from "@fireblocks/ts-sdk";
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
   try {
-    const opts: FreezeTokenOpts = {
+    const params: FreezeTokenOpts = {
       holder: "rNZxC1fL1qREWqu9N5A74nHWwqo39XoNYB",
       currency: "FBX",
       freeze: true,
     };
 
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.FREEZE_TOKEN,
-      opts
-    );
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.FREEZE_TOKEN,
+      params,
+    };
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {
