@@ -1,5 +1,6 @@
 import { DestinationTransferPeerPath } from "@fireblocks/ts-sdk";
 import { Amount, IssuedCurrencyAmount, Memo, Path } from "xrpl";
+import { TransactionType } from "../pool/types";
 
 /** Signed transaction placeholder (blob + hash) */
 export interface SignedTransaction {
@@ -235,4 +236,21 @@ export interface FreezeTokenOpts extends BasePaymentOpts {
   holder: string;
   currency: string;
   freeze: boolean;
+}
+
+export interface ExecuteTransactionOpts {
+  vaultAccountId: string,
+    transactionType: TransactionType,
+    params:
+      | OfferCreateOpts
+      | OfferCancelOpts
+      | OfferCancelOpts
+      | CrossCurrencyPaymentOpts
+      | AccountSetOpts
+      | TrustSetOpts
+      | TokenTransferOpts
+      | BurnTokenOpts
+      | FreezeTokenOpts
+      | ClawbackOpts
+      | XrpTransferOpts
 }
