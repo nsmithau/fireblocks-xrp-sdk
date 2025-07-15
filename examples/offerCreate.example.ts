@@ -1,5 +1,6 @@
 import { FbksXrpApiService, OfferCreateOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -10,7 +11,7 @@ import { BasePath } from "@fireblocks/ts-sdk";
   });
 
   try {
-    const opts: OfferCreateOpts = {
+    const params: OfferCreateOpts = {
       sellAmount: "10",
       buyAmount: {
         currency: "THT",
@@ -23,11 +24,12 @@ import { BasePath } from "@fireblocks/ts-sdk";
       },
     };
 
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.OFFER_CREATE,
-      opts
-    );
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.OFFER_CREATE,
+      params,
+    };
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

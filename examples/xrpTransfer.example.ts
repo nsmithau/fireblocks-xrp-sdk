@@ -1,5 +1,6 @@
 import { FbksXrpApiService, XrpTransferOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -8,8 +9,9 @@ import { BasePath } from "@fireblocks/ts-sdk";
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
+
   try {
-    const opts: XrpTransferOpts = {
+    const params: XrpTransferOpts = {
       destination: {
         type: "ONE_TIME_ADDRESS",
         oneTimeAddress: {
@@ -19,11 +21,14 @@ import { BasePath } from "@fireblocks/ts-sdk";
       amount: "2",
       note: "Test transfer of 2 xrp-test from Fireblocks SDK",
     };
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.XRP_TRANSFER,
-      opts
-    );
+
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.XRP_TRANSFER,
+      params,
+    };
+
+    const res = await apiService.executeTransaction(opts);
     // Need to check which type of response we got
     if ("result" in res) {
       // This is a TxResponse from XRPL

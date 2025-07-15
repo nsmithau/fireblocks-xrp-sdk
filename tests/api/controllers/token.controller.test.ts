@@ -9,7 +9,14 @@ import {
 } from "../../../src/api/controllers/token.controller";
 import { TransactionType } from "../../../src/pool/types";
 import { FbksXrpApiService } from "../../../src/api/ApiService";
-import { TransactionResponse } from "@fireblocks/ts-sdk";
+
+// Mock the logger so console output does not clutter test logs
+jest.mock("../../../src/utils/logger", () => ({
+  Logger: jest.fn().mockImplementation(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+  })),
+}));
 
 describe("token.controller", () => {
   let mockApi: jest.Mocked<FbksXrpApiService>;
@@ -24,7 +31,7 @@ describe("token.controller", () => {
 
     req = {
       params: { vaultAccountId: "vault123" },
-      body: { key: "value" },
+      body: { someKey: "someValue" },
     };
 
     res = {
@@ -36,58 +43,83 @@ describe("token.controller", () => {
     jest.clearAllMocks();
   });
 
-  const testCases = [
+  const controllers = [
     {
       fn: tokenTransfer,
-      type: TransactionType.TOKEN_TRANSFER,
+      txType: TransactionType.TOKEN_TRANSFER,
       label: "tokenTransfer",
     },
-    { fn: accountSet, type: TransactionType.ACCOUNT_SET, label: "accountSet" },
-    { fn: burnToken, type: TransactionType.BURN_TOKEN, label: "burnToken" },
-    { fn: clawback, type: TransactionType.CLAWBACK, label: "clawback" },
+    {
+      fn: accountSet,
+      txType: TransactionType.ACCOUNT_SET,
+      label: "accountSet",
+    },
+    { fn: burnToken, txType: TransactionType.BURN_TOKEN, label: "burnToken" },
+    { fn: clawback, txType: TransactionType.CLAWBACK, label: "clawback" },
     {
       fn: freezeToken,
-      type: TransactionType.FREEZE_TOKEN,
+      txType: TransactionType.FREEZE_TOKEN,
       label: "freezeToken",
     },
-    { fn: trustSet, type: TransactionType.TRUST_SET, label: "trustSet" },
+    { fn: trustSet, txType: TransactionType.TRUST_SET, label: "trustSet" },
     {
       fn: xrpTransfer,
-      type: TransactionType.XRP_TRANSFER,
+      txType: TransactionType.XRP_TRANSFER,
       label: "xrpTransfer",
     },
   ];
 
-  for (const { fn, type, label } of testCases) {
+  for (const { fn, txType, label } of controllers) {
     describe(label, () => {
-      it(`should call executeTransaction with ${type} and return 200`, async () => {
-        const fakeRes: TransactionResponse = {
-          id: "abc123",
-          status: "COMPLETED",
-          txHash: "mockedTxHash",
-          createdAt: 12345678,
-        };
-
-        mockApi.executeTransaction.mockResolvedValue(fakeRes);
+      it("returns 200 and result on success", async () => {
+        const txResult = { id: "result", ok: true };
+        mockApi.executeTransaction.mockResolvedValueOnce(txResult);
 
         await fn(req, res, next, mockApi);
 
-        expect(mockApi.executeTransaction).toHaveBeenCalledWith(
-          "vault123",
-          type,
-          { key: "value" }
-        );
+        expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+          vaultAccountId: "vault123",
+          transactionType: txType,
+          params: req.body,
+        });
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.json).toHaveBeenCalledWith(fakeRes);
+        expect(res.json).toHaveBeenCalledWith(txResult);
+        expect(next).not.toHaveBeenCalled();
       });
 
-      it("should handle errors and call next", async () => {
-        const error = new Error("test failure");
-        mockApi.executeTransaction.mockRejectedValue(error);
+      it("calls next(error) and logs on failure", async () => {
+        const err = new Error("fail!");
+        mockApi.executeTransaction.mockRejectedValueOnce(err);
 
         await fn(req, res, next, mockApi);
 
-        expect(next).toHaveBeenCalledWith(error);
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
+        expect(next).toHaveBeenCalledWith(err);
+      });
+
+      it("passes the correct request params", async () => {
+        await fn(req, res, next, mockApi);
+
+        expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+          vaultAccountId: req.params.vaultAccountId,
+          transactionType: txType,
+          params: req.body,
+        });
+      });
+
+      it("handles missing vaultAccountId gracefully", async () => {
+        req.params = {};
+        const err = new Error("No vault");
+        mockApi.executeTransaction.mockRejectedValueOnce(err);
+
+        await fn(req, res, next, mockApi);
+
+        // Should call with undefined vaultAccountId
+        expect(mockApi.executeTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ vaultAccountId: undefined })
+        );
+        expect(next).toHaveBeenCalledWith(err);
       });
     });
   }

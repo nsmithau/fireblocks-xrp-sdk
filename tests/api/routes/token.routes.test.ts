@@ -1,95 +1,70 @@
-import express, { Express } from "express";
 import request from "supertest";
+import express from "express";
 import { configureTokenRoutes } from "../../../src/api/routes/token.routes";
 import { FbksXrpApiService } from "../../../src/api/ApiService";
-import { TransactionResponse } from "@fireblocks/ts-sdk";
+import { TransactionType } from "../../../src/pool/types";
+import { TxResponse, Transaction } from "xrpl";
 
 jest.mock("../../../src/api/ApiService");
 
+const mockApi = {
+  executeTransaction: jest.fn(),
+};
+
+const app = express();
+app.use(express.json());
+app.use("/", configureTokenRoutes(mockApi as unknown as FbksXrpApiService));
+
+const vaultAccountId = "vault123";
+const fakeXrpResponse: TxResponse<Transaction> = {
+  id: "mocked-id",
+  type: "submit",
+  result: {
+    hash: "abc123",
+    meta: "",
+    tx_json: {} as Transaction,
+  },
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockApi.executeTransaction.mockResolvedValue(fakeXrpResponse);
+});
+
 describe("Token Routes", () => {
-  let app: Express;
-  const mockApi = {
-    executeTransaction: jest.fn(),
-  } as unknown as jest.Mocked<FbksXrpApiService>;
-
-  const vaultAccountId = "vault123";
-
-  const fakeXrpResponse = {
-    id: "abc123",
-    type: "Payment",
-    result: {
-      hash: "txhash",
-      meta: {},
-      tx_json: { TransactionType: "Payment" },
-    },
-  };
-
-  const fakeFbksResponse: TransactionResponse = {
-    id: "tx456",
-    status: "COMPLETED",
-    createdAt: 123456789,
-    assetId: "XRP",
-    source: {
-      type: "VAULT_ACCOUNT",
-      id: "1", // required when type is VAULT_ACCOUNT
-    },
-    destination: {
-      type: "ONE_TIME_ADDRESS",
-    },
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    app = express();
-    app.use(express.json());
-    app.use(configureTokenRoutes(mockApi));
-  });
-
-  const tokenRoutes = [
-    "tokenTransfer",
-    "accountSet",
-    "burnToken",
-    "clawback",
-    "freezeToken",
-    "trustSet",
-    "xrpTransfer",
+  const routes = [
+    { path: "tokenTransfer", type: TransactionType.TOKEN_TRANSFER },
+    { path: "accountSet", type: TransactionType.ACCOUNT_SET },
+    { path: "burnToken", type: TransactionType.BURN_TOKEN },
+    { path: "clawback", type: TransactionType.CLAWBACK },
+    { path: "freezeToken", type: TransactionType.FREEZE_TOKEN },
+    { path: "trustSet", type: TransactionType.TRUST_SET },
+    { path: "xrpTransfer", type: TransactionType.XRP_TRANSFER },
   ];
 
-  for (const route of tokenRoutes) {
-    it(`calls executeTransaction for ${route}`, async () => {
-      const endpoint = `/api/token/${route}/${vaultAccountId}`;
-
-      // Determine expected result format
-      const expectedResponse =
-        route === "xrpTransfer" ? fakeFbksResponse : fakeXrpResponse;
-
-      // Mock based on route
-      mockApi.executeTransaction.mockImplementation((_, type) => {
-        return type === "xrpTransfer"
-          ? Promise.resolve(fakeFbksResponse)
-          : Promise.resolve(fakeXrpResponse);
-      });
-
-      const res = await request(app).post(endpoint).send({ test: true });
+  routes.forEach(({ path, type }) => {
+    it(`calls executeTransaction for ${path}`, async () => {
+      const res = await request(app)
+        .post(`/api/token/${path}/${vaultAccountId}`)
+        .send({ test: true });
 
       expect(res.status).toBe(200);
-      expect(res.body).toEqual(expectedResponse);
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith(
+      expect(res.body).toEqual(fakeXrpResponse);
+      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
         vaultAccountId,
-        route,
-        { test: true }
-      );
-    });
-
-    it(`returns 400 if vault account is missing for ${route}`, async () => {
-      const res = await request(app)
-        .post(`/api/token/${route}`)
-        .send({ test: true });
-      expect(res.status).toBe(400);
-      expect(res.body).toEqual({
-        error: "Missing vault account ID",
-        message: "Vault account Id is missing from the request URL",
+        transactionType: type,
+        params: { test: true },
       });
     });
-  }
+  });
+
+  it("returns 400 if vaultAccountId is missing", async () => {
+    const res = await request(app).post(`/api/token/tokenTransfer`).send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: "Missing vault account ID",
+      message: "Vault account Id is missing from the request URL",
+    });
+  });
 });

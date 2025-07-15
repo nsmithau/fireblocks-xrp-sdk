@@ -108,11 +108,11 @@ describe("FbksXrpApiService", () => {
       const mockResult = { success: true };
       (mockSdkInstance as any)[method].mockResolvedValueOnce(mockResult);
 
-      const result = await service.executeTransaction(
-        "vault123",
-        txType,
-        minimalParams[txType]
-      );
+      const result = await service.executeTransaction({
+        vaultAccountId: "vault123",
+        transactionType: txType,
+        params: minimalParams[txType],
+      });
 
       expect(result).toEqual(mockResult);
       expect(mockGetSdk).toHaveBeenCalledWith("vault123");
@@ -129,11 +129,11 @@ describe("FbksXrpApiService", () => {
 
     const params = minimalParams.xrpTransfer;
 
-    const res = await service.executeTransaction(
-      "vaultX",
-      TransactionType.XRP_TRANSFER,
-      params
-    );
+    const res = await service.executeTransaction({
+      vaultAccountId: "vaultX",
+      transactionType: TransactionType.XRP_TRANSFER,
+      params,
+    });
 
     expect(mockSdkInstance.xrpTransfer).toHaveBeenCalledWith(params);
     expect(res).toEqual(result);
@@ -142,11 +142,11 @@ describe("FbksXrpApiService", () => {
 
   it("throws ValidationError for unknown transaction type", async () => {
     await expect(
-      service.executeTransaction(
-        "vault1",
-        "INVALID_TYPE" as TransactionType,
-        minimalParams.offerCreate
-      )
+      service.executeTransaction({
+        vaultAccountId: "vault1",
+        transactionType: "INVALID_TYPE" as TransactionType,
+        params: minimalParams.offerCreate,
+      })
     ).rejects.toThrow(ValidationError);
 
     expect(mockReleaseSdk).toHaveBeenCalledWith("vault1");
@@ -156,11 +156,11 @@ describe("FbksXrpApiService", () => {
     mockSdkInstance.trustSet.mockRejectedValue(new Error("Simulated failure"));
 
     await expect(
-      service.executeTransaction(
-        "vaultFail",
-        TransactionType.TRUST_SET,
-        minimalParams.trustSet
-      )
+      service.executeTransaction({
+        vaultAccountId: "vaultFail",
+        transactionType: TransactionType.TRUST_SET,
+        params: minimalParams.trustSet,
+      })
     ).rejects.toThrow("Simulated failure");
 
     expect(mockReleaseSdk).toHaveBeenCalledWith("vaultFail");

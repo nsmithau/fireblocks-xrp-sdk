@@ -40,11 +40,11 @@ describe("DEX Routes", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith(
+    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
       vaultAccountId,
-      TransactionType.OFFER_CREATE,
-      { test: true }
-    );
+      transactionType: TransactionType.OFFER_CREATE,
+      params: { test: true },
+    });
   });
 
   it("calls executeTransaction for offerCancel", async () => {
@@ -54,11 +54,11 @@ describe("DEX Routes", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith(
+    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
       vaultAccountId,
-      TransactionType.OFFER_CANCEL,
-      { test: true }
-    );
+      transactionType: TransactionType.OFFER_CANCEL,
+      params: { test: true },
+    });
   });
 
   it("calls executeTransaction for crossCurrencyPayment", async () => {
@@ -68,11 +68,11 @@ describe("DEX Routes", () => {
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith(
+    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
       vaultAccountId,
-      TransactionType.CROSS_CURRENCY_PAYMENT,
-      { test: true }
-    );
+      transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
+      params: { test: true },
+    });
   });
 
   it("returns 400 if vaultAccountId is missing", async () => {

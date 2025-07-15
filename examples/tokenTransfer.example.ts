@@ -1,5 +1,6 @@
 import { FbksXrpApiService, TokenTransferOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -9,7 +10,7 @@ import { BasePath } from "@fireblocks/ts-sdk";
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
   try {
-    const opts: TokenTransferOpts = {
+    const params: TokenTransferOpts = {
       destination: "rfSeUdwJC4ejRZ3mNfdH7KMWPyGGx6UTmf",
       amount: {
         currency: "FBX",
@@ -17,11 +18,14 @@ import { BasePath } from "@fireblocks/ts-sdk";
         value: "100",
       },
     };
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.TOKEN_TRANSFER,
-      opts
-    );
+
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.TOKEN_TRANSFER,
+      params,
+    };
+
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

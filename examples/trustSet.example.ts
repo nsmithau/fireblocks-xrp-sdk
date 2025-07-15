@@ -1,5 +1,6 @@
 import { FbksXrpApiService, TrustSetOpts, TransactionType } from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
 
 (async () => {
   const apiService = new FbksXrpApiService({
@@ -9,18 +10,21 @@ import { BasePath } from "@fireblocks/ts-sdk";
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
   try {
-    const opts: TrustSetOpts = {
+    const params: TrustSetOpts = {
       limitAmount: {
         currency: "FBX",
         issuer: "rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS",
         value: "10000",
       },
     };
-    const res = await apiService.executeTransaction(
-      process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      TransactionType.TRUST_SET,
-      opts
-    );
+
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.TRUST_SET,
+      params,
+    };
+
+    const res = await apiService.executeTransaction(opts);
 
     // Need to check which type of response we got
     if ("result" in res) {

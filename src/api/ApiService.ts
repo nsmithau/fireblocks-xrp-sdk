@@ -17,6 +17,7 @@ import {
   FreezeTokenOpts,
   ClawbackOpts,
   XrpTransferOpts,
+  ExecuteTransactionOpts,
 } from "../config/types";
 import { Logger } from "../utils/logger";
 import { ValidationError } from "../errors/errors";
@@ -91,22 +92,11 @@ export class FbksXrpApiService {
   /**
    * Execute a transaction using the appropriate SDK method
    */
-  public executeTransaction = async (
-    vaultAccountId: string,
-    transactionType: TransactionType,
-    params:
-      | OfferCreateOpts
-      | OfferCancelOpts
-      | OfferCancelOpts
-      | CrossCurrencyPaymentOpts
-      | AccountSetOpts
-      | TrustSetOpts
-      | TokenTransferOpts
-      | BurnTokenOpts
-      | FreezeTokenOpts
-      | ClawbackOpts
-      | XrpTransferOpts
-  ): Promise<TxResponse | TransactionResponse> => {
+  public executeTransaction = async ({
+    vaultAccountId,
+    transactionType,
+    params,
+  }: ExecuteTransactionOpts): Promise<TxResponse | TransactionResponse> => {
     let sdk: FireblocksXrpSdk;
     try {
       // Get SDK instance from the pool
