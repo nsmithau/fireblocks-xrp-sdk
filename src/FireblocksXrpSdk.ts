@@ -600,10 +600,7 @@ export class FireblocksXrpSdk extends Wallet {
       vaultAccountId?: string;
     }
   ): Fireblocks => {
-    const secret =
-      config.apiSecret.endsWith(".pem") || config.apiSecret.endsWith(".key")
-        ? readFileSync(config.apiSecret, "utf8")
-        : config.apiSecret;
+    const secret = readFileSync(config.apiSecret, "utf8");
 
     return new Fireblocks({
       apiKey: config.apiKey,

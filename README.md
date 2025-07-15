@@ -74,8 +74,8 @@ cp .env.example .env
 | Variable Name                 | Required | Default  | Purpose                                                                                                                |
 | ----------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `FIREBLOCKS_API_KEY`          |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
-| `FIREBLOCKS_API_SECRET`       |   Yes    | –        | Path or inline string of Fireblocks private key                                                                        |
-| `FIREBLOCKS_VAULT_ACCOUNT_ID` |   Yes    | –        | Vault account to use for transactions                                                                                  |
+| `FIREBLOCKS_API_SECRET`       |   Yes    | –        | Path to Fireblocks private key                                                                                         |
+| `FIREBLOCKS_VAULT_ACCOUNT_ID` |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
 | `FIREBLOCKS_ASSET_ID`         |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
 | `FIREBLOCKS_BASE_PATH`        |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
 | `SDK_LOG_LEVEL`               |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
