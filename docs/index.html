@@ -63,13 +63,13 @@ This SDK relies on Fireblocks' RAW signing capabilities. Customers are fully res
 <td><code>FIREBLOCKS_API_SECRET</code></td>
 <td style="text-align:center">Yes</td>
 <td>–</td>
-<td>Path or inline string of Fireblocks private key</td>
+<td>Path to Fireblocks private key</td>
 </tr>
 <tr>
 <td><code>FIREBLOCKS_VAULT_ACCOUNT_ID</code></td>
-<td style="text-align:center">Yes</td>
+<td style="text-align:center">No</td>
 <td>–</td>
-<td>Vault account to use for transactions</td>
+<td>Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.</td>
 </tr>
 <tr>
 <td><code>FIREBLOCKS_ASSET_ID</code></td>

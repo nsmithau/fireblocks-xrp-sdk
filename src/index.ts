@@ -11,5 +11,6 @@ export {
   XrpTransferOpts,
   TokenTransferOpts,
   CrossCurrencyPaymentOpts,
+  ExecuteTransactionOpts,
 } from "./config/types";
 export { TransactionType } from "./pool/types";
