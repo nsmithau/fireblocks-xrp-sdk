@@ -179,11 +179,12 @@ export interface CrossCurrencyPaymentOpts extends TokenTransferOpts {
 /**
  * OfferCreate (DEX):
  *  • sellAmount, buyAmount are each “Amount” (drops or IOU).
- *  • optional expiration, flags, memos.
+ *  • optional domainId, expiration, flags, memos.
  */
 export interface OfferCreateOpts {
   sellAmount: Amount;
   buyAmount: Amount;
+  domainId?: string;
   expiration?: number;
   flags?: IOfferCreateFlags;
   memos?: Memo[];
@@ -239,18 +240,18 @@ export interface FreezeTokenOpts extends BasePaymentOpts {
 }
 
 export interface ExecuteTransactionOpts {
-  vaultAccountId: string,
-    transactionType: TransactionType,
-    params:
-      | OfferCreateOpts
-      | OfferCancelOpts
-      | OfferCancelOpts
-      | CrossCurrencyPaymentOpts
-      | AccountSetOpts
-      | TrustSetOpts
-      | TokenTransferOpts
-      | BurnTokenOpts
-      | FreezeTokenOpts
-      | ClawbackOpts
-      | XrpTransferOpts
+  vaultAccountId: string;
+  transactionType: TransactionType;
+  params:
+    | OfferCreateOpts
+    | OfferCancelOpts
+    | OfferCancelOpts
+    | CrossCurrencyPaymentOpts
+    | AccountSetOpts
+    | TrustSetOpts
+    | TokenTransferOpts
+    | BurnTokenOpts
+    | FreezeTokenOpts
+    | ClawbackOpts
+    | XrpTransferOpts;
 }

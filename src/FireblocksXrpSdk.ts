@@ -95,6 +95,7 @@ export class FireblocksXrpSdk extends Wallet {
    * @param buyAmount - TakerPays param
    * @param flags - optional, OfferCreate flags
    * @param expiration - optional, Expiration timestamp in seconds
+   * @param domainId - optional, Domain ID for the offer
    * @param memos - optional, memos object for an xrp transaction
    * @returns SubmitResponse object with tx results
    */
@@ -103,6 +104,7 @@ export class FireblocksXrpSdk extends Wallet {
     sellAmount,
     buyAmount,
     flags,
+    domainId,
     expiration,
     memos,
   }: OfferCreateOpts): Promise<TxResponse> => {
@@ -120,6 +122,7 @@ export class FireblocksXrpSdk extends Wallet {
         fee,
         sequence,
         lastLedgerSequence,
+        domainId,
         expiration,
         flags,
         memos

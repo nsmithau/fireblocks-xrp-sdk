@@ -71,15 +71,15 @@ Start by copying `.env.example` to `.env` and editing for your environment:
 cp .env.example .env
 ```
 
-| Variable Name                 | Required | Default  | Purpose                                                                                                                |
-| ----------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `FIREBLOCKS_API_KEY`          |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
-| `FIREBLOCKS_API_SECRET`       |   Yes    | –        | Path to Fireblocks private key                                                                                         |
-| `FIREBLOCKS_VAULT_ACCOUNT_ID` |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
-| `FIREBLOCKS_ASSET_ID`         |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
-| `FIREBLOCKS_BASE_PATH`        |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
-| `SDK_LOG_LEVEL`               |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
-| `PORT`                        |    No    | 3000     | API server port (REST mode)                                                                                            |
+| Variable Name                   | Required | Default  | Purpose                                                                                                                |
+| ------------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `FIREBLOCKS_API_KEY`            |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
+| `FIREBLOCKS_API_PATH_TO_SECRET` |   Yes    | –        | Path to Fireblocks private key                                                                                         |
+| `FIREBLOCKS_VAULT_ACCOUNT_ID`   |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
+| `FIREBLOCKS_ASSET_ID`           |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
+| `FIREBLOCKS_BASE_PATH`          |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
+| `SDK_LOG_LEVEL`                 |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
+| `PORT`                          |    No    | 3000     | API server port (REST mode)                                                                                            |
 
 ---
 
@@ -167,7 +167,7 @@ dotenv.config();
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
@@ -183,6 +183,8 @@ dotenv.config();
       tfPassiveOffer: true,
       tfSellOffer: true,
     },
+    domainId:
+      "ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
   };
 
   const opts: ExecuteTransactionOpts = {

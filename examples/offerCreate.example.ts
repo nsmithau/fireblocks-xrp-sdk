@@ -5,7 +5,7 @@ import { ExecuteTransactionOpts } from "../src/config/types";
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
@@ -22,6 +22,8 @@ import { ExecuteTransactionOpts } from "../src/config/types";
         tfPassiveOffer: true,
         tfSellOffer: true,
       },
+      domainId:
+        "ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
     };
 
     const opts: ExecuteTransactionOpts = {

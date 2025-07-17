@@ -6,6 +6,7 @@ import {
   derivePaymentFlags,
   validateAmount,
   validateMemos,
+  validateHash256,
 } from "../../src/utils/utils";
 import { Amount, Memo, Path } from "xrpl";
 import { IPaymentFlags } from "../../src/config/types";
@@ -16,12 +17,14 @@ jest.mock("../../src/utils/utils", () => ({
   derivePaymentFlags: jest.fn(),
   validateAmount: jest.fn(),
   validateMemos: jest.fn((memos) => memos),
+  validateHash256: jest.fn(),
 }));
 
 const mockDeriveOfferCreateFlags = deriveOfferCreateFlags as jest.Mock;
 const mockDerivePaymentFlags = derivePaymentFlags as jest.Mock;
 const mockValidateAmount = validateAmount as jest.Mock;
 const mockValidateMemos = validateMemos as jest.Mock;
+const mockValidateHash256 = validateHash256 as jest.Mock;
 
 describe("DexService", () => {
   let service: DexService;
@@ -45,15 +48,18 @@ describe("DexService", () => {
       fee: "12",
       sequence: 100,
       lastLedgerSequence: 120,
+      domainId:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       expiration: 500,
       flags: { tfFillOrKillOffer: true },
       memos: [{ Memo: { MemoType: "foo", MemoData: "bar" } }] as Memo[],
     };
 
-    it("constructs OfferCreate tx with all valid inputs", () => {
+    it("constructs OfferCreate tx with all valid inputs including domainId", () => {
       mockValidateAmount.mockReturnValue(undefined);
       mockDeriveOfferCreateFlags.mockReturnValue(0x80000000);
       mockValidateMemos.mockReturnValue(baseArgs.memos);
+      mockValidateHash256.mockReturnValue(undefined); // simulate success
 
       const tx = service.getOfferCreateUnsignedTx(
         baseArgs.address,
@@ -62,6 +68,7 @@ describe("DexService", () => {
         baseArgs.fee,
         baseArgs.sequence,
         baseArgs.lastLedgerSequence,
+        baseArgs.domainId,
         baseArgs.expiration,
         baseArgs.flags,
         baseArgs.memos
@@ -71,9 +78,14 @@ describe("DexService", () => {
       expect(tx.Expiration).toBe(baseArgs.expiration);
       expect(tx.Flags).toBe(0x80000000);
       expect(tx.Memos).toEqual(baseArgs.memos);
+      expect(tx.DomainID).toBe(baseArgs.domainId);
+      expect(mockValidateHash256).toHaveBeenCalledWith(
+        "domainId",
+        baseArgs.domainId
+      );
     });
 
-    it("omits optional fields when not provided", () => {
+    it("omits optional fields when not provided (including domainId)", () => {
       mockValidateAmount.mockReturnValue(undefined);
       mockDeriveOfferCreateFlags.mockReturnValue(undefined);
 
@@ -83,18 +95,24 @@ describe("DexService", () => {
         baseArgs.buyAmount,
         baseArgs.fee,
         baseArgs.sequence,
-        baseArgs.lastLedgerSequence
+        baseArgs.lastLedgerSequence,
+        undefined // domainId not provided
       );
 
       expect(tx.Expiration).toBeUndefined();
       expect(tx.Flags).toBeUndefined();
       expect(tx.Memos).toBeUndefined();
+      expect(tx.DomainID).toBeUndefined();
+      expect(mockValidateHash256).not.toHaveBeenCalled();
     });
 
-    it("throws ValidationError for invalid sellAmount or buyAmount", () => {
-      mockValidateAmount.mockImplementationOnce(() => {
-        throw new ValidationError("BadAmount", "sell invalid");
+    it("throws ValidationError for invalid domainId", () => {
+      mockValidateAmount.mockReturnValue(undefined);
+      mockDeriveOfferCreateFlags.mockReturnValue(undefined);
+      mockValidateHash256.mockImplementation(() => {
+        throw new ValidationError("InvalidHash256", "domainId bad");
       });
+
       expect(() =>
         service.getOfferCreateUnsignedTx(
           baseArgs.address,
@@ -102,334 +120,257 @@ describe("DexService", () => {
           baseArgs.buyAmount,
           baseArgs.fee,
           baseArgs.sequence,
-          baseArgs.lastLedgerSequence
+          baseArgs.lastLedgerSequence,
+          "bad" // invalid domainId
         )
       ).toThrow(ValidationError);
+      expect(mockValidateHash256).toHaveBeenCalledWith("domainId", "bad");
+    });
 
-      mockValidateAmount
-        .mockReturnValueOnce(undefined)
-        .mockImplementationOnce(() => {
-          throw new ValidationError("BadAmount", "buy invalid");
+    // ---------- CrossCurrencyPayment ----------
+
+    describe("getCrossCurrencyPaymentUnsignedTx", () => {
+      const baseArgs = {
+        address: "rSender",
+        destination: "rDest",
+        amount: { currency: "USD", issuer: "rIssuer", value: "100" } as Amount,
+        fee: "12",
+        sequence: 1,
+        lastLedgerSequence: 10,
+        sendMax: { currency: "USD", issuer: "rIssuer", value: "150" } as Amount,
+        paths: [
+          [{ account: "rSomeAccount", currency: "USD", issuer: "rIssuer" }],
+        ] as Path[],
+        flags: { tfPartialPayment: true } as IPaymentFlags,
+        memos: [{ Memo: { MemoType: "note", MemoData: "test" } }] as Memo[],
+        destinationTag: 123,
+        invoiceId: "INV123",
+      };
+
+      it("constructs Payment tx with valid inputs", () => {
+        mockValidateAmount.mockReturnValue(undefined);
+        mockDerivePaymentFlags.mockReturnValue(0x00020000);
+        mockValidateMemos.mockReturnValue(baseArgs.memos);
+
+        const tx = service.getCrossCurrencyPaymentUnsignedTx(
+          baseArgs.address,
+          baseArgs.destination,
+          baseArgs.amount,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.sendMax,
+          baseArgs.paths,
+          baseArgs.flags,
+          baseArgs.memos,
+          baseArgs.destinationTag,
+          baseArgs.invoiceId
+        );
+
+        expect(tx.TransactionType).toBe("Payment");
+        expect(tx.SendMax).toEqual(baseArgs.sendMax);
+        expect(tx.Paths).toEqual(baseArgs.paths);
+        expect(tx.Flags).toBe(0x00020000);
+        expect(tx.Memos).toEqual(baseArgs.memos);
+        expect(tx.DestinationTag).toBe(baseArgs.destinationTag);
+        expect(tx.InvoiceID).toBe(baseArgs.invoiceId);
+      });
+
+      it("omits optional fields when not provided", () => {
+        mockValidateAmount.mockReturnValue(undefined);
+        mockDerivePaymentFlags.mockReturnValue(undefined);
+
+        const tx = service.getCrossCurrencyPaymentUnsignedTx(
+          baseArgs.address,
+          baseArgs.destination,
+          baseArgs.amount,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence
+        );
+
+        expect(tx.SendMax).toBeUndefined();
+        expect(tx.Paths).toBeUndefined();
+        expect(tx.Flags).toBeUndefined();
+        expect(tx.Memos).toBeUndefined();
+        expect(tx.DestinationTag).toBeUndefined();
+        expect(tx.InvoiceID).toBeUndefined();
+      });
+
+      it("throws ValidationError for invalid destination", () => {
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            "" as any,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence
+          )
+        ).toThrow(ValidationError);
+      });
+
+      it("throws ValidationError for invalid amount or sendMax", () => {
+        mockValidateAmount.mockImplementationOnce(() => {
+          throw new ValidationError("BadAmt", "amount invalid");
         });
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
-          baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-    });
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence
+          )
+        ).toThrow(ValidationError);
 
-    it("throws ValidationError for negative or fractional expiration", () => {
-      mockValidateAmount.mockReturnValue(undefined);
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
-          baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          -1
-        )
-      ).toThrow(ValidationError);
-
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
-          baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          1.5 as any
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("throws ValidationError when deriveOfferCreateFlags errors", () => {
-      mockValidateAmount.mockReturnValue(undefined);
-      mockDeriveOfferCreateFlags.mockImplementation(() => {
-        throw new Error("flag issue");
+        mockValidateAmount.mockReturnValue(undefined);
+        mockValidateAmount.mockImplementationOnce(() => {
+          throw new ValidationError("BadAmt", "sendMax invalid");
+        });
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence,
+            baseArgs.sendMax
+          )
+        ).toThrow(ValidationError);
       });
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
+
+      it("throws ValidationError for invalid destinationTag or invoiceId", () => {
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            -5
+          )
+        ).toThrow(ValidationError);
+
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            ""
+          )
+        ).toThrow(ValidationError);
+      });
+
+      it("throws ValidationError when derivePaymentFlags errors", () => {
+        mockValidateAmount.mockReturnValue(undefined);
+        mockDerivePaymentFlags.mockImplementation(() => {
+          throw new Error("flag error");
+        });
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence,
+            undefined,
+            undefined,
+            baseArgs.flags
+          )
+        ).toThrow(ValidationError);
+      });
+
+      it("wraps unexpected errors in PaymentError", () => {
+        mockValidateAmount.mockImplementation(() => {
+          throw new Error("oops");
+        });
+        expect(() =>
+          service.getCrossCurrencyPaymentUnsignedTx(
+            baseArgs.address,
+            baseArgs.destination,
+            baseArgs.amount,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence
+          )
+        ).toThrow(ValidationError);
+      });
+    });
+
+    // ---------- OfferCancel ----------
+
+    describe("getOfferCancelUnsignedTx", () => {
+      const baseArgs = {
+        address: "rMaker",
+        offerSequence: 42,
+        fee: "10",
+        sequence: 5,
+        lastLedgerSequence: 15,
+        memos: [{ Memo: { MemoType: "foo", MemoData: "bar" } }] as Memo[],
+      };
+
+      it("constructs OfferCancel tx with valid inputs", () => {
+        const tx = service.getOfferCancelUnsignedTx(
           baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
+          baseArgs.offerSequence,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence
+        );
+        expect(tx.TransactionType).toBe("OfferCancel");
+        expect(tx.OfferSequence).toBe(baseArgs.offerSequence);
+      });
+
+      it("includes Memos when provided", () => {
+        mockValidateMemos.mockReturnValue(baseArgs.memos);
+        const tx = service.getOfferCancelUnsignedTx(
+          baseArgs.address,
+          baseArgs.offerSequence,
           baseArgs.fee,
           baseArgs.sequence,
           baseArgs.lastLedgerSequence,
-          baseArgs.expiration,
-          baseArgs.flags
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("wraps unexpected errors in OfferCreateError", () => {
-      // simulate unexpected error
-      mockValidateAmount.mockImplementation(() => {
-        throw new Error("oops");
+          baseArgs.memos
+        );
+        expect(tx.Memos).toEqual(baseArgs.memos);
       });
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
-          baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-    });
-  });
 
-  // ---------- CrossCurrencyPayment ----------
-
-  describe("getCrossCurrencyPaymentUnsignedTx", () => {
-    const baseArgs = {
-      address: "rSender",
-      destination: "rDest",
-      amount: { currency: "USD", issuer: "rIssuer", value: "100" } as Amount,
-      fee: "12",
-      sequence: 1,
-      lastLedgerSequence: 10,
-      sendMax: { currency: "USD", issuer: "rIssuer", value: "150" } as Amount,
-      paths: [
-        [{ account: "rSomeAccount", currency: "USD", issuer: "rIssuer" }],
-      ] as Path[],
-      flags: { tfPartialPayment: true } as IPaymentFlags,
-      memos: [{ Memo: { MemoType: "note", MemoData: "test" } }] as Memo[],
-      destinationTag: 123,
-      invoiceId: "INV123",
-    };
-
-    it("constructs Payment tx with valid inputs", () => {
-      mockValidateAmount.mockReturnValue(undefined);
-      mockDerivePaymentFlags.mockReturnValue(0x00020000);
-      mockValidateMemos.mockReturnValue(baseArgs.memos);
-
-      const tx = service.getCrossCurrencyPaymentUnsignedTx(
-        baseArgs.address,
-        baseArgs.destination,
-        baseArgs.amount,
-        baseArgs.fee,
-        baseArgs.sequence,
-        baseArgs.lastLedgerSequence,
-        baseArgs.sendMax,
-        baseArgs.paths,
-        baseArgs.flags,
-        baseArgs.memos,
-        baseArgs.destinationTag,
-        baseArgs.invoiceId
-      );
-
-      expect(tx.TransactionType).toBe("Payment");
-      expect(tx.SendMax).toEqual(baseArgs.sendMax);
-      expect(tx.Paths).toEqual(baseArgs.paths);
-      expect(tx.Flags).toBe(0x00020000);
-      expect(tx.Memos).toEqual(baseArgs.memos);
-      expect(tx.DestinationTag).toBe(baseArgs.destinationTag);
-      expect(tx.InvoiceID).toBe(baseArgs.invoiceId);
-    });
-
-    it("omits optional fields when not provided", () => {
-      mockValidateAmount.mockReturnValue(undefined);
-      mockDerivePaymentFlags.mockReturnValue(undefined);
-
-      const tx = service.getCrossCurrencyPaymentUnsignedTx(
-        baseArgs.address,
-        baseArgs.destination,
-        baseArgs.amount,
-        baseArgs.fee,
-        baseArgs.sequence,
-        baseArgs.lastLedgerSequence
-      );
-
-      expect(tx.SendMax).toBeUndefined();
-      expect(tx.Paths).toBeUndefined();
-      expect(tx.Flags).toBeUndefined();
-      expect(tx.Memos).toBeUndefined();
-      expect(tx.DestinationTag).toBeUndefined();
-      expect(tx.InvoiceID).toBeUndefined();
-    });
-
-    it("throws ValidationError for invalid destination", () => {
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          "" as any,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("throws ValidationError for invalid amount or sendMax", () => {
-      mockValidateAmount.mockImplementationOnce(() => {
-        throw new ValidationError("BadAmt", "amount invalid");
+      it("throws ValidationError for non-positive or non-integer offerSequence", () => {
+        expect(() =>
+          service.getOfferCancelUnsignedTx(
+            baseArgs.address,
+            0,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence
+          )
+        ).toThrow(ValidationError);
+        expect(() =>
+          service.getOfferCancelUnsignedTx(
+            baseArgs.address,
+            1.5 as any,
+            baseArgs.fee,
+            baseArgs.sequence,
+            baseArgs.lastLedgerSequence
+          )
+        ).toThrow(ValidationError);
       });
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-
-      mockValidateAmount.mockReturnValue(undefined);
-      mockValidateAmount.mockImplementationOnce(() => {
-        throw new ValidationError("BadAmt", "sendMax invalid");
-      });
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          baseArgs.sendMax
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("throws ValidationError for invalid destinationTag or invoiceId", () => {
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          -5
-        )
-      ).toThrow(ValidationError);
-
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          ""
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("throws ValidationError when derivePaymentFlags errors", () => {
-      mockValidateAmount.mockReturnValue(undefined);
-      mockDerivePaymentFlags.mockImplementation(() => {
-        throw new Error("flag error");
-      });
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence,
-          undefined,
-          undefined,
-          baseArgs.flags
-        )
-      ).toThrow(ValidationError);
-    });
-
-    it("wraps unexpected errors in PaymentError", () => {
-      mockValidateAmount.mockImplementation(() => {
-        throw new Error("oops");
-      });
-      expect(() =>
-        service.getCrossCurrencyPaymentUnsignedTx(
-          baseArgs.address,
-          baseArgs.destination,
-          baseArgs.amount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-    });
-  });
-
-  // ---------- OfferCancel ----------
-
-  describe("getOfferCancelUnsignedTx", () => {
-    const baseArgs = {
-      address: "rMaker",
-      offerSequence: 42,
-      fee: "10",
-      sequence: 5,
-      lastLedgerSequence: 15,
-      memos: [{ Memo: { MemoType: "foo", MemoData: "bar" } }] as Memo[],
-    };
-
-    it("constructs OfferCancel tx with valid inputs", () => {
-      const tx = service.getOfferCancelUnsignedTx(
-        baseArgs.address,
-        baseArgs.offerSequence,
-        baseArgs.fee,
-        baseArgs.sequence,
-        baseArgs.lastLedgerSequence
-      );
-      expect(tx.TransactionType).toBe("OfferCancel");
-      expect(tx.OfferSequence).toBe(baseArgs.offerSequence);
-    });
-
-    it("includes Memos when provided", () => {
-      mockValidateMemos.mockReturnValue(baseArgs.memos);
-      const tx = service.getOfferCancelUnsignedTx(
-        baseArgs.address,
-        baseArgs.offerSequence,
-        baseArgs.fee,
-        baseArgs.sequence,
-        baseArgs.lastLedgerSequence,
-        baseArgs.memos
-      );
-      expect(tx.Memos).toEqual(baseArgs.memos);
-    });
-
-    it("throws ValidationError for non-positive or non-integer offerSequence", () => {
-      expect(() =>
-        service.getOfferCancelUnsignedTx(
-          baseArgs.address,
-          0,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-      expect(() =>
-        service.getOfferCancelUnsignedTx(
-          baseArgs.address,
-          1.5 as any,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
     });
   });
 });

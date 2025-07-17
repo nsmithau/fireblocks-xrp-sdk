@@ -5,6 +5,7 @@ import {
   derivePaymentFlags,
   validateAmount,
   validateMemos,
+  validateHash256,
 } from "../utils/utils";
 import { ValidationError } from "../errors/errors";
 
@@ -34,6 +35,7 @@ export class DexService {
     fee: string,
     sequence: number,
     lastLedgerSequence: number,
+    domainId?: string,
     expiration?: number,
     flags?: IOfferCreateFlags,
     memos?: Memo[]
@@ -43,6 +45,10 @@ export class DexService {
       validateAmount("sellAmount", sellAmount);
       validateAmount("buyAmount", buyAmount);
 
+      // Validate domainId if provided
+      if (domainId !== undefined) {
+        validateHash256("domainId", domainId);
+      }
       // Validate expiration if provided
       if (
         expiration !== undefined &&
@@ -82,6 +88,7 @@ export class DexService {
           : {}),
         ...(expiration !== undefined && { Expiration: expiration }),
         ...(combinedFlags !== undefined && { Flags: combinedFlags }),
+        ...(domainId !== undefined && { DomainID: domainId }),
       };
 
       return tx;

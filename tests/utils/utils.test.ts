@@ -12,6 +12,7 @@ import {
   validateDestinationTag,
   validateMemos,
   ensureConnection,
+  validateHash256,
 } from "../../src/utils/utils";
 import { MAX_DOMAIN_BYTES } from "../../src/utils/constants";
 import { ValidationError, ClientError } from "../../src/errors/errors";
@@ -360,6 +361,48 @@ describe("Utils", () => {
       expect(() =>
         validateMemos([{ MemoFormat: 123, MemoData: "foo" }])
       ).toThrow(ValidationError);
+    });
+  });
+  describe("validateHash256", () => {
+    it("accepts valid hash256 strings", () => {
+      expect(() =>
+        validateHash256(
+          "DomainID",
+          "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        )
+      ).not.toThrow();
+
+      expect(() =>
+        validateHash256(
+          "DomainID",
+          "AABBCCDDEEFF00112233445566778899AABBCCDDEEFF00112233445566778899"
+        )
+      ).not.toThrow();
+    });
+
+    it("throws ValidationError for non-hex or wrong length", () => {
+      // Too short
+      expect(() => validateHash256("DomainID", "abc123")).toThrow(
+        ValidationError
+      );
+
+      // Too long
+      expect(() => validateHash256("DomainID", "a".repeat(65))).toThrow(
+        ValidationError
+      );
+
+      // Not hex
+      expect(() =>
+        validateHash256(
+          "DomainID",
+          "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+        )
+      ).toThrow(ValidationError);
+
+      // Not string
+      expect(() => validateHash256("DomainID", 123 as any)).toThrow(
+        ValidationError
+      );
     });
   });
 });
