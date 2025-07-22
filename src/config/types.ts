@@ -199,6 +199,30 @@ export interface OfferCancelOpts {
   memos?: Memo[];
 }
 
+export interface CredentialCreateOpts {
+  subject: string;
+  credentialType: string;
+  expiration?: number;
+  uri?: string;
+  flags?: number;
+  memos?: Memo[];
+}
+
+export interface CredentialAcceptOpts {
+  issuer: string;
+  credentialType: string;
+  flags?: number;
+  memos?: Memo[];
+}
+
+export interface CredentialDeleteOpts {
+  credentialType: string;
+  issuer?: string;
+  subject?: string;
+  flags?: number;
+  memos?: Memo[];
+}
+
 /**
  * Convenience shape for network parameters (fee, sequence, TTL).
  */
@@ -247,6 +271,9 @@ export interface ExecuteTransactionOpts {
     | OfferCancelOpts
     | OfferCancelOpts
     | CrossCurrencyPaymentOpts
+    | CredentialCreateOpts
+    | CredentialAcceptOpts
+    | CredentialDeleteOpts
     | AccountSetOpts
     | TrustSetOpts
     | TokenTransferOpts

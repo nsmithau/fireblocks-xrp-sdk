@@ -1,0 +1,55 @@
+import {
+  FbksXrpApiService,
+  TransactionType,
+  CredentialAcceptOpts,
+} from "../src/";
+import { BasePath } from "@fireblocks/ts-sdk";
+import { ExecuteTransactionOpts } from "../src/config/types";
+
+(async () => {
+  const apiService = new FbksXrpApiService({
+    apiKey: process.env.FIREBLOCKS_API_KEY || "",
+    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
+    basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
+  });
+
+  try {
+    const params: CredentialAcceptOpts = {
+      issuer: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", // XRPL testnet issuer
+      credentialType: "43455254", // Hex for "CERT"
+    };
+
+    const opts: ExecuteTransactionOpts = {
+      vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+      transactionType: TransactionType.CREDENTIAL_ACCEPT,
+      params,
+    };
+
+    const res = await apiService.executeTransaction(opts);
+
+    if ("result" in res) {
+      if (
+        typeof res.result.meta === "object" &&
+        res.result.meta?.TransactionResult !== "tesSUCCESS"
+      ) {
+        console.log(
+          `Tx submission failed with result: ${res.result.meta.TransactionResult}`
+        );
+      } else {
+        console.log(`Tx submitted successfully with hash: ${res.result.hash}`);
+        console.log(`Tx metadata: ${JSON.stringify(res.result.meta, null, 2)}`);
+      }
+    } else {
+      console.log(`Transaction submitted with ID: ${res.id}`);
+      console.log(`Status: ${res.status}`);
+      if (res.txHash) {
+        console.log(`Transaction hash: ${res.txHash}`);
+      }
+    }
+  } catch (error) {
+    console.error("Error in credentialAccept example:", error);
+  } finally {
+    await apiService.shutdown();
+  }
+})();

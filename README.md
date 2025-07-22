@@ -24,7 +24,7 @@ Built for Fireblocks customers who want seamless DEX, token, and issuer operatio
 
 ## 🚀 Features
 
-- **Advanced XRPL support:** DEX (OfferCreate/Cancel, CrossCurrencyPayment), token & XRP transfers, setting trust lines, account settings, clawback, freeze/unfreeze and burn.
+- **Advanced XRPL support:** DEX (OfferCreate/Cancel, Cross Currency Payments and Credentials), token & XRP transfers, setting trust lines, account settings, clawback, freeze/unfreeze and burn.
 - **Fireblocks wallet integration:** Secure MPC key management, raw signing flows, and transaction creation.
 - **Raw content validation with callback handler support** Any Raw transaction created by the SDK includes the unhashed payload for further validation actions on your callback handler before signing.
 - **Stateless, pool-managed SDK:** Efficient use of Fireblocks APIs with per-vault pooling.
@@ -271,7 +271,9 @@ curl -X POST http://localhost:3000/api/dex/offerCreate/<vaultAccountId> \
     "flags": {
       "tfPassiveOffer": true,
       "tfSellOffer": true
-    }
+    },
+    "domainId":
+      "ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
   }'
 ```
 
@@ -409,6 +411,9 @@ The running API server exposes interactive documentation and SDK reference for e
 - `POST /api/dex/offerCreate/:vaultAccountId`
 - `POST /api/dex/offerCancel/:vaultAccountId`
 - `POST /api/dex/crossCurrencyPayment/:vaultAccountId`
+- `POST /api/dex/credentialCreate/:vaultAccountId`
+- `POST /api/dex/credentialAccept/:vaultAccountId`
+- `POST /api/dex/credentialDelete/:vaultAccountId`
 
 **Token Routes:**
 

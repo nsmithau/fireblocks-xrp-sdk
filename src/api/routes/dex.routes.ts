@@ -3,6 +3,7 @@ import * as controllers from "../controllers";
 import { FbksXrpApiService } from "../ApiService";
 import { validateVaultAccount, requireBody } from "../middleware";
 import { Logger } from "../../utils/logger";
+import path from "path";
 
 const logger = new Logger("dex-routes");
 
@@ -13,6 +14,9 @@ export const configureDexRoutes = (api: FbksXrpApiService): Router => {
     { path: "offerCreate", handler: controllers.offerCreate },
     { path: "offerCancel", handler: controllers.offerCancel },
     { path: "crossCurrencyPayment", handler: controllers.crossCurrencyPayment },
+    { path: "credentialCreate", handler: controllers.credentialCreate },
+    { path: "credentialAccept", handler: controllers.credentialAccept },
+    { path: "credentialDelete", handler: controllers.credentialDelete },
   ];
 
   for (const { path, handler } of dexRoutes) {

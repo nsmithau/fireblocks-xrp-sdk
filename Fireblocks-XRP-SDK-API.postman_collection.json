@@ -72,6 +72,99 @@
 					"response": []
 				},
 				{
+					"name": "credentialCreate",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe\",\n    \"credentialType\": \"43455254\",\n    \"expiration\": 800000000,\n    \"uri\": \"68747470733A2F2F6578616D706C652E636F6D2F637265642F313233\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/credentialCreate/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"credentialCreate",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "credentialAccept",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe\",\n    \"credentialType\": \"43455254\",\n    \"expiration\": 800000000,\n    \"uri\": \"68747470733A2F2F6578616D706C652E636F6D2F637265642F313233\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/credentialCreate/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"credentialCreate",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "credentialDelete",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"credentialType\": \"43455254\", \n      \"issuer\": \"rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe\", \n      \"subject\": \"rU6K7V3Po4snVhBBaU29sesqs2qTQJWDw1\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:3000/api/dex/credentialDelete/0",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"dex",
+								"credentialDelete",
+								"0"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "offerCancel",
 					"request": {
 						"auth": {

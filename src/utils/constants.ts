@@ -27,3 +27,5 @@ export const TrustSetFlagValues: Record<keyof ITrustSetFlags, number> = {
   tfSetFreeze: 0x00100000,
   tfClearFreeze: 0x00200000,
 };
+
+export const HEX_REGEX = /^[0-9A-Fa-f]{2,512}$/;

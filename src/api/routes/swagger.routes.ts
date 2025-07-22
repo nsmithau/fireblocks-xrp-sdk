@@ -40,6 +40,42 @@ router.post(
   }
 );
 
+router.post(
+  "/api/dex/credentialCreate/:vaultAccountId",
+  (req: Request, res: Response) => {
+    // #swagger.tags = ['DEX']
+    // #swagger.summary = 'CredentialCreate'
+    // #swagger.description = 'Creates a credential entry for a subject (as described in XRPL protocol).'
+    // #swagger.parameters['vaultAccountId'] = { description: 'Fireblocks vault account ID', required: true }
+    // #swagger.requestBody = { required: true, content: { "application/json": { schema: { $ref: "#/definitions/CredentialCreateRequest" } } } }
+    // #swagger.responses[200] = { description: 'CredentialCreateResponse', schema: { $ref: "#/definitions/CredentialCreateResponse" } }
+  }
+);
+
+router.post(
+  "/api/dex/credentialAccept/:vaultAccountId",
+  (req: Request, res: Response) => {
+    // #swagger.tags = ['DEX']
+    // #swagger.summary = 'CredentialAccept'
+    // #swagger.description = 'Accepts a credential issued by a third party (as described in XRPL protocol).'
+    // #swagger.parameters['vaultAccountId'] = { description: 'Fireblocks vault account ID', required: true }
+    // #swagger.requestBody = { required: true, content: { "application/json": { schema: { $ref: "#/definitions/CredentialAcceptRequest" } } } }
+    // #swagger.responses[200] = { description: 'CredentialAcceptResponse', schema: { $ref: "#/definitions/CredentialAcceptResponse" } }
+  }
+);
+
+router.post(
+  "/api/dex/credentialDelete/:vaultAccountId",
+  (req: Request, res: Response) => {
+    // #swagger.tags = ['DEX']
+    // #swagger.summary = 'CredentialDelete'
+    // #swagger.description = 'Deletes a credential (as described in XRPL protocol). You must provide credentialType and at least one of issuer or subject.'
+    // #swagger.parameters['vaultAccountId'] = { description: 'Fireblocks vault account ID', required: true }
+    // #swagger.requestBody = { required: true, content: { "application/json": { schema: { $ref: "#/definitions/CredentialDeleteRequest" } } } }
+    // #swagger.responses[200] = { description: 'CredentialDeleteResponse', schema: { $ref: "#/definitions/CredentialDeleteResponse" } }
+  }
+);
+
 // ---------- TOKEN Endpoints ----------
 
 router.post(
