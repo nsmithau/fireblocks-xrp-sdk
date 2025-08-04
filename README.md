@@ -24,7 +24,7 @@ Built for Fireblocks customers who want seamless DEX, token, and issuer operatio
 
 ## 🚀 Features
 
-- **Advanced XRPL support:** DEX (OfferCreate/Cancel, Cross Currency Payments and Credentials), token & XRP transfers, setting trust lines, account settings, clawback, freeze/unfreeze and burn.
+- **Advanced XRPL support:** DEX ([OfferCreate](https://xrpl.org/docs/references/protocol/transactions/types/offercreate)/[Cancel](https://xrpl.org/docs/references/protocol/transactions/types/offercancel), [Cross Currency Payments](https://xrpl.org/docs/concepts/payment-types/cross-currency-payments) and [Credentials](https://xrpl.org/docs/references/protocol/transactions/types/credentialcreate)), [token & XRP transfers](https://xrpl.org/docs/references/protocol/transactions/types/payment), [setting trust lines](https://xrpl.org/docs/references/protocol/transactions/types/trustset), [account settings](<(https://xrpl.org/docs/references/protocol/transactions/types/accountset)>), [clawback](https://xrpl.org/docs/references/protocol/transactions/types/clawback), [freeze/unfreeze](https://xrpl.org/docs/references/protocol/transactions/types/trustset) and [burn](https://xrpl.org/docs/use-cases/tokenization/stablecoin-issuer#burn).
 - **Fireblocks wallet integration:** Secure MPC key management, raw signing flows, and transaction creation.
 - **Raw content validation with callback handler support** Any Raw transaction created by the SDK includes the unhashed payload for further validation actions on your callback handler before signing.
 - **Stateless, pool-managed SDK:** Efficient use of Fireblocks APIs with per-vault pooling.
