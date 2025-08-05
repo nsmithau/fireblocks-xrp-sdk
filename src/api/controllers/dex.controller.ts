@@ -64,3 +64,63 @@ export const crossCurrencyPayment = async (
     next(error);
   }
 };
+
+export const credentialCreate = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  api: FbksXrpApiService
+) => {
+  try {
+    logger.info("Creating CredentialCreate Transaction");
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.CREDENTIAL_CREATE,
+      params: req.body,
+    });
+    res.status(200).json(txRes);
+  } catch (error) {
+    logger.error("Error in CredentialCreate:", error);
+    next(error);
+  }
+};
+
+export const credentialAccept = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  api: FbksXrpApiService
+) => {
+  try {
+    logger.info("Creating CredentialAccept Transaction");
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.CREDENTIAL_ACCEPT,
+      params: req.body,
+    });
+    res.status(200).json(txRes);
+  } catch (error) {
+    logger.error("Error in CredentialAccept:", error);
+    next(error);
+  }
+};
+
+export const credentialDelete = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+  api: FbksXrpApiService
+) => {
+  try {
+    logger.info("Creating CredentialDelete Transaction");
+    const txRes = await api.executeTransaction({
+      vaultAccountId: req.params.vaultAccountId,
+      transactionType: TransactionType.CREDENTIAL_DELETE,
+      params: req.body,
+    });
+    res.status(200).json(txRes);
+  } catch (error) {
+    logger.error("Error in CredentialDelete:", error);
+    next(error);
+  }
+};

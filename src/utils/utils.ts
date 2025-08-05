@@ -19,6 +19,7 @@ import {
 } from "../config/types";
 import { MAX_DOMAIN_BYTES, TTL_CONST, XRP_LIMITS } from "./constants";
 
+const HASHREGEX = /^[0-9A-Fa-f]{64}$/;
 /**
  * Estimate the current network fee based on server state.
  */
@@ -266,6 +267,18 @@ export const derivePaymentFlags = (
 
   return combined === 0 ? undefined : combined;
 };
+
+/**
+ * Validates a hash256 string (64 hex chars).
+ */
+export function validateHash256(name: string, value: string) {
+  if (typeof value !== "string" || !HASHREGEX.test(value)) {
+    throw new ValidationError(
+      "InvalidHash256",
+      `${name} must be a 64-character hexadecimal string (hash256)`
+    );
+  }
+}
 
 /**
  * Validate an XRP or token Amount, throwing ValidationError on bad input.

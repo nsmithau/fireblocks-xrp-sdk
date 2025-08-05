@@ -26,6 +26,9 @@ import {
   AccountSetOpts,
   TrustSetOpts,
   XrpTransferOpts,
+  CredentialCreateOpts,
+  CredentialAcceptOpts,
+  CredentialDeleteOpts,
 } from "./config/types";
 import { XRPL_BURN_ADDRESS } from "./utils/constants";
 import { getNetworkParams } from "./utils/utils";
@@ -95,6 +98,7 @@ export class FireblocksXrpSdk extends Wallet {
    * @param buyAmount - TakerPays param
    * @param flags - optional, OfferCreate flags
    * @param expiration - optional, Expiration timestamp in seconds
+   * @param domainId - optional, Domain ID for the offer
    * @param memos - optional, memos object for an xrp transaction
    * @returns SubmitResponse object with tx results
    */
@@ -103,6 +107,7 @@ export class FireblocksXrpSdk extends Wallet {
     sellAmount,
     buyAmount,
     flags,
+    domainId,
     expiration,
     memos,
   }: OfferCreateOpts): Promise<TxResponse> => {
@@ -120,6 +125,7 @@ export class FireblocksXrpSdk extends Wallet {
         fee,
         sequence,
         lastLedgerSequence,
+        domainId,
         expiration,
         flags,
         memos
@@ -173,6 +179,9 @@ export class FireblocksXrpSdk extends Wallet {
    * @param destination - destination address
    * @param amount - Amount to send
    * @param sendMax - Amount to send max
+   * @param flags - optional, flags for the transaction (common transaction flags)
+   * @param invoiceId - optional, invoice ID for the transaction
+   * @param destinationTag - optional, destination tag for the transaction
    * @param paths - optional, array of paths for the cross currency payment
    * @param memos - optional, memos object for an xrp transaction
    * @returns TxResponse object with tx results from Ripple ledger
@@ -217,6 +226,124 @@ export class FireblocksXrpSdk extends Wallet {
     }
   };
 
+  /**
+   * CredentialCreate transaction on the Ripple ledger, signed by the Fireblocks SDK and returns the TxResponse object from the xrpl SDK
+   * @param subject - the subject of the credential
+   * @param credentialType - the type of the credential
+   * @param expiration - optional, expiration timestamp in seconds
+   * @param uri - optional, URI for the credential
+   * @param flags - optional, flags for the credential (common transaction flags)
+   * @param memos - optional, memos object for an xrp transaction
+   * @returns TxResponse object with tx results from Ripple ledger
+   * @throws Error if the transaction fails
+   */
+  public credentialCreate = async ({
+    subject,
+    credentialType,
+    expiration,
+    uri,
+    flags,
+    memos,
+  }: CredentialCreateOpts) => {
+    try {
+      const { fee, sequence, lastLedgerSequence } =
+        await this.getClientParams();
+
+      logger.info(`Creating a CredentialCreate transaction...`);
+      const transaction = this.dexService.getCredentialCreateUnsignedTx(
+        this.address,
+        fee,
+        sequence,
+        lastLedgerSequence,
+        subject,
+        credentialType,
+        expiration,
+        uri,
+        flags,
+        memos
+      );
+      const note = `CredentialCreate transaction for wallet: ${this.address}`;
+      return await this.signAndSubmitTx(transaction, note);
+    } catch (error: any) {
+      if (error instanceof ValidationError || error instanceof SigningError) {
+        throw error;
+      }
+      throw new Error(`Error in credentialCreate: ${error.message}`);
+    }
+  };
+
+  /**
+   * CredentialAccept transaction on the Ripple ledger, signed by the Fireblocks SDK and returns the TxResponse object from the xrpl SDK
+   * @param issuer - the issuer of the credential
+   * @param credentialType - the type of the credential
+   * @param flags - optional, flags for the credential (common transaction flags)
+   * @param memos - optional, memos object for an xrp transaction
+   * @returns TxResponse object with tx results from Ripple ledger
+   * @throws Error if the transaction fails
+   */
+  public credentialAccept = async ({
+    issuer,
+    credentialType,
+    flags,
+    memos,
+  }: CredentialAcceptOpts): Promise<TxResponse> => {
+    try {
+      const { fee, sequence, lastLedgerSequence } =
+        await this.getClientParams();
+
+      logger.info(`Creating a CredentialAccept transaction...`);
+      const transaction = this.dexService.getCredentialAcceptUnsignedTx(
+        this.address,
+        fee,
+        sequence,
+        lastLedgerSequence,
+        issuer,
+        credentialType,
+        flags,
+        memos
+      );
+      const note = `CredentialAccept transaction for wallet: ${this.address}`;
+      return await this.signAndSubmitTx(transaction, note);
+    } catch (error: any) {
+      if (error instanceof ValidationError || error instanceof SigningError) {
+        throw error;
+      }
+      throw new Error(`Error in credentialAccept: ${error.message}`);
+    }
+  };
+
+  public credentialDelete = async ({
+    credentialType,
+    issuer,
+    subject,
+    flags,
+    memos,
+  }: CredentialDeleteOpts): Promise<TxResponse> => {
+    try {
+      const { fee, sequence, lastLedgerSequence } =
+        await this.getClientParams();
+
+      logger.info(`Creating a CredentialDelete transaction...`);
+      const transaction = this.dexService.getCredentialDeleteUnsignedTx(
+        this.address,
+        fee,
+        sequence,
+        lastLedgerSequence,
+        credentialType,
+        issuer,
+        subject,
+        flags,
+        memos
+      );
+      const note = `CredentialDelete transaction for wallet: ${this.address}`;
+      return await this.signAndSubmitTx(transaction, note);
+    } catch (error: any) {
+      if (error instanceof ValidationError || error instanceof SigningError) {
+        throw error;
+      }
+      throw new Error(`Error in credentialDelete: ${error.message}`);
+    }
+  };
   /**
    * AccountSet transaction on the Ripple ledger, signed by the Fireblocks SDK and returns the TxResponse object from the xrpl SDK
    * @param configs - AccountSet configurations, can include setFlag, clearFlag, tfFlags, domain, transferRate, tickSize, emailHash, messageKey

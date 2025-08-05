@@ -3,8 +3,15 @@ import express from "express";
 import { configureDexRoutes } from "../../../src/api/routes/dex.routes";
 import { FbksXrpApiService } from "../../../src/api/ApiService";
 import { TransactionType } from "../../../src/pool/types";
-import { TxResponse } from "xrpl";
-import { Transaction } from "xrpl";
+import { TxResponse, Transaction } from "xrpl";
+
+// Silence logger output in tests
+jest.mock("../../../src/utils/logger", () => ({
+  Logger: jest.fn().mockImplementation(() => ({
+    info: jest.fn(),
+    error: jest.fn(),
+  })),
+}));
 
 jest.mock("../../../src/api/ApiService");
 
@@ -32,56 +39,59 @@ beforeEach(() => {
   mockApi.executeTransaction.mockResolvedValue(fakeXrpResponse);
 });
 
+const endpoints = [
+  {
+    url: "offerCreate",
+    type: TransactionType.OFFER_CREATE,
+  },
+  {
+    url: "offerCancel",
+    type: TransactionType.OFFER_CANCEL,
+  },
+  {
+    url: "crossCurrencyPayment",
+    type: TransactionType.CROSS_CURRENCY_PAYMENT,
+  },
+  {
+    url: "credentialCreate",
+    type: TransactionType.CREDENTIAL_CREATE,
+  },
+  {
+    url: "credentialAccept",
+    type: TransactionType.CREDENTIAL_ACCEPT,
+  },
+  {
+    url: "credentialDelete",
+    type: TransactionType.CREDENTIAL_DELETE,
+  },
+];
+
 describe("DEX Routes", () => {
-  it("calls executeTransaction for offerCreate", async () => {
-    const res = await request(app)
-      .post(`/api/dex/offerCreate/${vaultAccountId}`)
-      .send({ test: true });
+  for (const { url, type } of endpoints) {
+    it(`calls executeTransaction for ${url}`, async () => {
+      const res = await request(app)
+        .post(`/api/dex/${url}/${vaultAccountId}`)
+        .send({ test: true });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-      vaultAccountId,
-      transactionType: TransactionType.OFFER_CREATE,
-      params: { test: true },
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(fakeXrpResponse);
+      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+        vaultAccountId,
+        transactionType: type,
+        params: { test: true },
+      });
     });
-  });
 
-  it("calls executeTransaction for offerCancel", async () => {
-    const res = await request(app)
-      .post(`/api/dex/offerCancel/${vaultAccountId}`)
-      .send({ test: true });
+    it(`returns 400 if vaultAccountId is missing for ${url}`, async () => {
+      const res = await request(app)
+        .post(`/api/dex/${url}`)
+        .send({ test: true });
 
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-      vaultAccountId,
-      transactionType: TransactionType.OFFER_CANCEL,
-      params: { test: true },
+      expect(res.status).toBe(400);
+      expect(res.body).toEqual({
+        error: "Missing vault account ID",
+        message: "Vault account Id is missing from the request URL",
+      });
     });
-  });
-
-  it("calls executeTransaction for crossCurrencyPayment", async () => {
-    const res = await request(app)
-      .post(`/api/dex/crossCurrencyPayment/${vaultAccountId}`)
-      .send({ test: true });
-
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(fakeXrpResponse);
-    expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-      vaultAccountId,
-      transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
-      params: { test: true },
-    });
-  });
-
-  it("returns 400 if vaultAccountId is missing", async () => {
-    const res = await request(app).post(`/api/dex/offerCreate`).send({});
-
-    expect(res.status).toBe(400);
-    expect(res.body).toEqual({
-      error: "Missing vault account ID",
-      message: "Vault account Id is missing from the request URL",
-    });
-  });
+  }
 });

@@ -2,6 +2,9 @@ import {
   offerCreate,
   offerCancel,
   crossCurrencyPayment,
+  credentialCreate,
+  credentialAccept,
+  credentialDelete,
 } from "../../../src/api/controllers";
 import { TransactionType } from "../../../src/pool/types";
 import { FbksXrpApiService } from "../../../src/api/ApiService";
@@ -39,90 +42,73 @@ describe("dex.controller", () => {
     jest.clearAllMocks();
   });
 
-  describe("offerCreate", () => {
-    it("should call api.executeTransaction with OFFER_CREATE and return 200", async () => {
-      const fakeResponse = { id: "tx123" };
-      mockApi.executeTransaction.mockResolvedValue(fakeResponse);
+  const tests = [
+    {
+      fn: offerCreate,
+      type: TransactionType.OFFER_CREATE,
+      label: "offerCreate",
+      errorLabel: "Offer Create",
+    },
+    {
+      fn: offerCancel,
+      type: TransactionType.OFFER_CANCEL,
+      label: "offerCancel",
+      errorLabel: "OfferCancel",
+    },
+    {
+      fn: crossCurrencyPayment,
+      type: TransactionType.CROSS_CURRENCY_PAYMENT,
+      label: "crossCurrencyPayment",
+      errorLabel: "Cross Currency Payment",
+    },
+    {
+      fn: credentialCreate,
+      type: TransactionType.CREDENTIAL_CREATE,
+      label: "credentialCreate",
+      errorLabel: "CredentialCreate",
+    },
+    {
+      fn: credentialAccept,
+      type: TransactionType.CREDENTIAL_ACCEPT,
+      label: "credentialAccept",
+      errorLabel: "CredentialAccept",
+    },
+    {
+      fn: credentialDelete,
+      type: TransactionType.CREDENTIAL_DELETE,
+      label: "credentialDelete",
+      errorLabel: "CredentialDelete",
+    },
+  ];
 
-      await offerCreate(req, res, next, mockApi);
+  for (const { fn, type, label } of tests) {
+    describe(label, () => {
+      it(`should call api.executeTransaction with ${type} and return 200`, async () => {
+        const fakeResponse = { id: `${label}_id` };
+        mockApi.executeTransaction.mockResolvedValue(fakeResponse);
 
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-        vaultAccountId: "vault123",
-        transactionType: TransactionType.OFFER_CREATE,
-        params: { foo: "bar" },
+        await fn(req, res, next, mockApi);
+
+        expect(mockApi.executeTransaction).toHaveBeenCalledWith({
+          vaultAccountId: "vault123",
+          transactionType: type,
+          params: { foo: "bar" },
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.json).toHaveBeenCalledWith(fakeResponse);
+        expect(next).not.toHaveBeenCalled();
       });
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(fakeResponse);
-      expect(next).not.toHaveBeenCalled();
-    });
 
-    it("should handle error and call next", async () => {
-      const error = new Error("Oops");
-      mockApi.executeTransaction.mockRejectedValue(error);
+      it("should handle error and call next", async () => {
+        const error = new Error(`fail for ${label}`);
+        mockApi.executeTransaction.mockRejectedValue(error);
 
-      await offerCreate(req, res, next, mockApi);
+        await fn(req, res, next, mockApi);
 
-      expect(next).toHaveBeenCalledWith(error);
-      expect(res.status).not.toHaveBeenCalled();
-      expect(res.json).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("offerCancel", () => {
-    it("should call api.executeTransaction with OFFER_CANCEL and return 200", async () => {
-      const fakeResponse = { id: "tx456" };
-      mockApi.executeTransaction.mockResolvedValue(fakeResponse);
-
-      await offerCancel(req, res, next, mockApi);
-
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-        vaultAccountId: "vault123",
-        transactionType: TransactionType.OFFER_CANCEL,
-        params: { foo: "bar" },
+        expect(next).toHaveBeenCalledWith(error);
+        expect(res.status).not.toHaveBeenCalled();
+        expect(res.json).not.toHaveBeenCalled();
       });
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(fakeResponse);
-      expect(next).not.toHaveBeenCalled();
     });
-
-    it("should handle error and call next", async () => {
-      const error = new Error("fail cancel");
-      mockApi.executeTransaction.mockRejectedValue(error);
-
-      await offerCancel(req, res, next, mockApi);
-
-      expect(next).toHaveBeenCalledWith(error);
-      expect(res.status).not.toHaveBeenCalled();
-      expect(res.json).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("crossCurrencyPayment", () => {
-    it("should call api.executeTransaction with CROSS_CURRENCY_PAYMENT and return 200", async () => {
-      const fakeResponse = { id: "tx789" };
-      mockApi.executeTransaction.mockResolvedValue(fakeResponse);
-
-      await crossCurrencyPayment(req, res, next, mockApi);
-
-      expect(mockApi.executeTransaction).toHaveBeenCalledWith({
-        vaultAccountId: "vault123",
-        transactionType: TransactionType.CROSS_CURRENCY_PAYMENT,
-        params: { foo: "bar" },
-      });
-      expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith(fakeResponse);
-      expect(next).not.toHaveBeenCalled();
-    });
-
-    it("should handle error and call next", async () => {
-      const error = new Error("payment error");
-      mockApi.executeTransaction.mockRejectedValue(error);
-
-      await crossCurrencyPayment(req, res, next, mockApi);
-
-      expect(next).toHaveBeenCalledWith(error);
-      expect(res.status).not.toHaveBeenCalled();
-      expect(res.json).not.toHaveBeenCalled();
-    });
-  });
+  }
 });

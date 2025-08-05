@@ -18,6 +18,9 @@ import {
   ClawbackOpts,
   XrpTransferOpts,
   ExecuteTransactionOpts,
+  CredentialCreateOpts,
+  CredentialAcceptOpts,
+  CredentialDeleteOpts,
 } from "../config/types";
 import { Logger } from "../utils/logger";
 import { ValidationError } from "../errors/errors";
@@ -115,6 +118,15 @@ export class FbksXrpApiService {
           result = await sdk.crossCurrencyPayment(
             params as CrossCurrencyPaymentOpts
           );
+          break;
+        case TransactionType.CREDENTIAL_CREATE:
+          result = await sdk.credentialCreate(params as CredentialCreateOpts);
+          break;
+        case TransactionType.CREDENTIAL_DELETE:
+          result = await sdk.credentialDelete(params as CredentialDeleteOpts);
+          break;
+        case TransactionType.CREDENTIAL_ACCEPT:
+          result = await sdk.credentialAccept(params as CredentialAcceptOpts);
           break;
         case TransactionType.ACCOUNT_SET:
           result = await sdk.accountSet(params as AccountSetOpts);

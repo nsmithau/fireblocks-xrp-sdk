@@ -1,12 +1,25 @@
-import { OfferCreate, Amount, Memo, OfferCancel, Payment, Path } from "xrpl";
+import {
+  OfferCreate,
+  Amount,
+  Memo,
+  OfferCancel,
+  Payment,
+  Path,
+  CredentialCreate,
+  isValidAddress,
+  CredentialAccept,
+  CredentialDelete,
+} from "xrpl";
 import { IOfferCreateFlags, IPaymentFlags } from "../config/types";
 import {
   deriveOfferCreateFlags,
   derivePaymentFlags,
   validateAmount,
   validateMemos,
+  validateHash256,
 } from "../utils/utils";
 import { ValidationError } from "../errors/errors";
+import { HEX_REGEX } from "../utils/constants";
 
 /**
  * Service class for interacting with the XRPL Decentralized Exchange (DEX)
@@ -34,6 +47,7 @@ export class DexService {
     fee: string,
     sequence: number,
     lastLedgerSequence: number,
+    domainId?: string,
     expiration?: number,
     flags?: IOfferCreateFlags,
     memos?: Memo[]
@@ -43,6 +57,10 @@ export class DexService {
       validateAmount("sellAmount", sellAmount);
       validateAmount("buyAmount", buyAmount);
 
+      // Validate domainId if provided
+      if (domainId !== undefined) {
+        validateHash256("domainId", domainId);
+      }
       // Validate expiration if provided
       if (
         expiration !== undefined &&
@@ -82,6 +100,7 @@ export class DexService {
           : {}),
         ...(expiration !== undefined && { Expiration: expiration }),
         ...(combinedFlags !== undefined && { Flags: combinedFlags }),
+        ...(domainId !== undefined && { DomainID: domainId }),
       };
 
       return tx;
@@ -99,11 +118,11 @@ export class DexService {
   /**
    * Builds an unsigned Payment transaction for cross-currency payments on the XRPL
    *
-   * @param address - The XRPL address of the sender (pre-validated)
+   * @param address - The XRPL address of the sender
    * @param destination - The XRPL address of the recipient
    * @param amount - The amount to deliver to the recipient
-   * @param fee - The transaction fee in drops (pre-validated)
-   * @param sequence - The account sequence number (pre-validated)
+   * @param fee - The transaction fee in drops
+   * @param sequence - The account sequence number
    * @param lastLedgerSequence - The last ledger sequence where this transaction is valid
    * @param sendMax - The maximum amount to send (for partial payments)
    * @param paths - Optional payment paths to use
@@ -213,10 +232,10 @@ export class DexService {
   /**
    * Builds an unsigned OfferCancel transaction for cancelling existing offers on the XRPL DEX
    *
-   * @param address - The XRPL address of the account cancelling the offer (pre-validated)
+   * @param address - The XRPL address of the account cancelling the offer
    * @param offerSequence - The sequence number of the offer to cancel
-   * @param fee - The transaction fee in drops (pre-validated)
-   * @param sequence - The account sequence number (pre-validated)
+   * @param fee - The transaction fee in drops
+   * @param sequence - The account sequence number
    * @param lastLedgerSequence - The last ledger sequence where this transaction is valid
    * @param memos - Optional memos to attach to the transaction
    * @returns An unsigned OfferCancel transaction
@@ -263,6 +282,279 @@ export class DexService {
       throw new ValidationError(
         "OfferCancelError",
         `Error creating unsigned OfferCancel tx: ${error.message || error}`
+      );
+    }
+  };
+
+  /**
+   * Builds an unsigned CredentialCreate transaction for creating credentials on the XRPL
+   * @param address - The XRPL address of the account creating the credential
+   * @param fee - The transaction fee in drops
+   * @param sequence - The account sequence number
+   * @param lastLedgerSequence - The last ledger sequence where this transaction is valid
+   * @param subject - The XRPL address of the subject (the entity receiving the credential)
+   * @param credentialType - The type of credential being created (hex string)
+   * @param expiration - Optional expiration time in seconds since the Ripple Epoch
+   * @param uri - Optional URI associated with the credential (hex string)
+   * @param flags - Optional flags for the CredentialCreate transaction (common transaction flags)
+   * @param memos - Optional memos to attach to the transaction
+   * @returns An unsigned CredentialCreate transaction
+   * @throws {ValidationError} If user-provided parameters are invalid
+   */
+  public getCredentialCreateUnsignedTx = (
+    address: string,
+    fee: string,
+    sequence: number,
+    lastLedgerSequence: number,
+    subject: string,
+    credentialType: string,
+    expiration?: number,
+    uri?: string,
+    flags?: number,
+    memos?: Memo[]
+  ): CredentialCreate => {
+    try {
+      // validate subject as a valid xrp address
+      if (!subject || !isValidAddress(subject)) {
+        throw new ValidationError(
+          "InvalidSubject",
+          "Subject must be a valid XRPL address"
+        );
+      }
+      // CredentialType: hex string, 1–64 bytes (2–128 hex chars)
+      if (
+        typeof credentialType !== "string" ||
+        !HEX_REGEX.test(credentialType) ||
+        credentialType.length % 2 !== 0
+      ) {
+        throw new ValidationError(
+          "InvalidCredentialType",
+          "CredentialType must be a hex string (2-128 hex chars, even length, 1-64 bytes)"
+        );
+      }
+      // Expiration: UInt32, positive integer
+      if (expiration !== undefined) {
+        if (!Number.isInteger(expiration) || expiration < 0) {
+          throw new ValidationError(
+            "InvalidExpiration",
+            "Expiration must be a non-negative integer (seconds since Ripple Epoch)"
+          );
+        }
+      }
+
+      // URI: Hex string, 1–256 bytes (2–512 hex chars)
+      if (uri !== undefined) {
+        if (
+          typeof uri !== "string" ||
+          !HEX_REGEX.test(uri) ||
+          uri.length % 2 !== 0
+        ) {
+          throw new ValidationError(
+            "InvalidURI",
+            "URI must be a hex string (2-512 hex chars, even length, 1-256 bytes)"
+          );
+        }
+      }
+
+      // Validate memos if provided
+      const validatedMemos = memos ? validateMemos(memos) : undefined;
+
+      // Build and return transaction
+      const tx: CredentialCreate = {
+        TransactionType: "CredentialCreate",
+        Account: address,
+        Subject: subject,
+        CredentialType: credentialType,
+        Fee: fee,
+        Sequence: sequence,
+        LastLedgerSequence: lastLedgerSequence,
+        ...(expiration !== undefined && { Expiration: expiration }),
+        ...(uri !== undefined && { URI: uri }),
+        ...(flags !== undefined && { Flags: flags }),
+        ...(validatedMemos &&
+          validatedMemos.length > 0 && { Memos: validatedMemos }),
+      };
+      return tx;
+    } catch (error: any) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError(
+        "OfferCancelError",
+        `Error creating unsigned CredentialCreate tx: ${error.message || error}`
+      );
+    }
+  };
+
+  /**
+   * Builds an unsigned CredentialAccept transaction for creating credentials on the XRPL
+   * @param address - The XRPL address of the account creating the credential
+   * @param fee - The transaction fee in drops
+   * @param sequence - The account sequence number
+   * @param lastLedgerSequence - The last ledger sequence where this transaction is valid
+   * @param issuer - The XRPL address of the issuer (the entity that created the credential)
+   * @param credentialType - The type of credential being created (hex string)
+   * @param flags - Optional flags for the CredentialAccept transaction (common transaction flags)
+   * @param memos - Optional memos to attach to the transaction
+   * @returns An unsigned CredentialAccept transaction
+   * @throws {ValidationError} If user-provided parameters are invalid
+   */
+  public getCredentialAcceptUnsignedTx = (
+    address: string,
+    fee: string,
+    sequence: number,
+    lastLedgerSequence: number,
+    issuer: string,
+    credentialType: string,
+    flags?: number,
+    memos?: Memo[]
+  ): CredentialAccept => {
+    try {
+      // Validate Issuer
+      if (!issuer || !isValidAddress(issuer)) {
+        throw new ValidationError(
+          "InvalidIssuer",
+          "Issuer must be a valid XRPL address"
+        );
+      }
+      // CredentialType: hex string, 1–64 bytes (2–128 hex chars, even length)
+      if (
+        typeof credentialType !== "string" ||
+        !HEX_REGEX.test(credentialType) ||
+        credentialType.length % 2 !== 0
+      ) {
+        throw new ValidationError(
+          "InvalidCredentialType",
+          "CredentialType must be a hex string (2-128 hex chars, even length, 1-64 bytes)"
+        );
+      }
+
+      // Validate memos if provided
+      const validatedMemos = memos ? validateMemos(memos) : undefined;
+
+      // Construct the transaction
+      const tx: CredentialAccept = {
+        TransactionType: "CredentialAccept",
+        Account: address,
+        Issuer: issuer,
+        CredentialType: credentialType,
+        Fee: fee,
+        Sequence: sequence,
+        LastLedgerSequence: lastLedgerSequence,
+        ...(flags !== undefined && { Flags: flags }),
+        ...(validatedMemos &&
+          validatedMemos.length > 0 && { Memos: validatedMemos }),
+      };
+      return tx;
+    } catch (error: any) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError(
+        "CredentialAcceptError",
+        `Error creating unsigned CredentialAccept tx: ${error.message || error}`
+      );
+    }
+  };
+
+  /**
+   * Builds an unsigned CredentialDelete transaction for deleting credentials on the XRPL
+   * @param address - The XRPL address of the account deleting the credential
+   * @param fee - The transaction fee in drops
+   * @param sequence - The account sequence number
+   * @param lastLedgerSequence - The last ledger sequence where this transaction is valid
+   * @param credentialType - The type of credential being deleted (hex string)
+   * @param issuer - Optional XRPL address of the issuer (the entity that created the credential)
+   * @param subject - Optional XRPL address of the subject (the entity receiving the credential)
+   * @param flags - Optional flags for the CredentialDelete transaction (common transaction flags)
+   * @param memos - Optional memos to attach to the transaction
+   * @returns An unsigned CredentialDelete transaction
+   * @throws {ValidationError} If user-provided parameters are invalid
+   */
+  public getCredentialDeleteUnsignedTx = (
+    address: string,
+    fee: string,
+    sequence: number,
+    lastLedgerSequence: number,
+    credentialType: string,
+    issuer?: string,
+    subject?: string,
+    flags?: number,
+    memos?: Memo[]
+  ): CredentialDelete => {
+    try {
+      // Must provide at least one: issuer or subject
+      if ((!issuer || issuer === "") && (!subject || subject === "")) {
+        throw new ValidationError(
+          "MissingCredentialDeleteParams",
+          "You must provide the Subject field, Issuer field, or both."
+        );
+      }
+
+      // Validate that credentialType is provided (not null/undefined/empty)
+      if (
+        credentialType === undefined ||
+        credentialType === null ||
+        credentialType === ""
+      ) {
+        throw new ValidationError(
+          "MissingCredentialType",
+          "CredentialType is a required parameter for CredentialDelete"
+        );
+      }
+
+      // Validate credentialType format: hex string, 1–64 bytes (2–128 hex chars), even length
+      if (
+        typeof credentialType !== "string" ||
+        !HEX_REGEX.test(credentialType) ||
+        credentialType.length % 2 !== 0
+      ) {
+        throw new ValidationError(
+          "InvalidCredentialType",
+          "CredentialType must be a hex string (2–128 hex chars, even length, 1–64 bytes)"
+        );
+      }
+
+      // Validate issuer, if provided
+      if (issuer && !isValidAddress(issuer)) {
+        throw new ValidationError(
+          "InvalidIssuer",
+          "Issuer must be a valid XRPL address if provided"
+        );
+      }
+
+      // Validate subject, if provided
+      if (subject && !isValidAddress(subject)) {
+        throw new ValidationError(
+          "InvalidSubject",
+          "Subject must be a valid XRPL address if provided"
+        );
+      }
+
+      // Validate memos if provided
+      const validatedMemos = memos ? validateMemos(memos) : undefined;
+
+      // Build tx object
+      const tx: CredentialDelete = {
+        TransactionType: "CredentialDelete",
+        Account: address,
+        CredentialType: credentialType,
+        ...(issuer && { Issuer: issuer }),
+        ...(subject && { Subject: subject }),
+        Fee: fee,
+        Sequence: sequence,
+        LastLedgerSequence: lastLedgerSequence,
+        ...(flags !== undefined && { Flags: flags }),
+        ...(validatedMemos &&
+          validatedMemos.length > 0 && { Memos: validatedMemos }),
+      };
+
+      return tx;
+    } catch (error: any) {
+      if (error instanceof ValidationError) throw error;
+      throw new ValidationError(
+        "CredentialDeleteError",
+        `Error creating unsigned CredentialDelete tx: ${error.message || error}`
       );
     }
   };

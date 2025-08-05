@@ -1,4 +1,8 @@
-import { FbksXrpApiService, BurnTokenOpts, TransactionType } from "../src/";
+import {
+  FbksXrpApiService,
+  TransactionType,
+  CredentialCreateOpts,
+} from "../src/";
 import { BasePath } from "@fireblocks/ts-sdk";
 import { ExecuteTransactionOpts } from "../src/config/types";
 
@@ -9,25 +13,24 @@ import { ExecuteTransactionOpts } from "../src/config/types";
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
+
   try {
-    const params: BurnTokenOpts = {
-      amount: {
-        currency: "FBX",
-        issuer: "rhsMZjNb4ehEHdfLbMCRBnwMr7XAnicnVS",
-        value: "45",
-      },
+    const params: CredentialCreateOpts = {
+      subject: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe", // XRPL testnet address
+      credentialType: "43455254", // Hex for "CERT"
+      expiration: 800000000, // optional, Ripple Epoch seconds
+      uri: "68747470733A2F2F6578616D706C652E636F6D2F637265642F313233", // hex for 'https://example.com/cred/123'
     };
+
     const opts: ExecuteTransactionOpts = {
       vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
-      transactionType: TransactionType.BURN_TOKEN,
+      transactionType: TransactionType.CREDENTIAL_CREATE,
       params,
     };
 
-    const res = await await apiService.executeTransaction(opts);
+    const res = await apiService.executeTransaction(opts);
 
-    // Need to check which type of response we got
     if ("result" in res) {
-      // This is a TxResponse from XRPL
       if (
         typeof res.result.meta === "object" &&
         res.result.meta?.TransactionResult !== "tesSUCCESS"
@@ -40,7 +43,6 @@ import { ExecuteTransactionOpts } from "../src/config/types";
         console.log(`Tx metadata: ${JSON.stringify(res.result.meta, null, 2)}`);
       }
     } else {
-      // This is a TransactionResponse from Fireblocks
       console.log(`Transaction submitted with ID: ${res.id}`);
       console.log(`Status: ${res.status}`);
       if (res.txHash) {
@@ -48,7 +50,7 @@ import { ExecuteTransactionOpts } from "../src/config/types";
       }
     }
   } catch (error) {
-    console.error("Error in offerCreate example:", error);
+    console.error("Error in credentialCreate example:", error);
   } finally {
     await apiService.shutdown();
   }

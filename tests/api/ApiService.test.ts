@@ -19,6 +19,9 @@ const mockSdkInstance = {
   freezeToken: jest.fn(),
   clawback: jest.fn(),
   xrpTransfer: jest.fn(),
+  credentialCreate: jest.fn(),
+  credentialAccept: jest.fn(),
+  credentialDelete: jest.fn(),
 };
 
 const mockGetSdk = jest.fn();
@@ -88,6 +91,18 @@ describe("FbksXrpApiService", () => {
       destination: "rDest",
       amount: "1",
     },
+    credentialCreate: {
+      subject: "rSubject",
+      credentialType: "abcdef",
+    },
+    credentialAccept: {
+      issuer: "rIssuer",
+      credentialType: "abcdef",
+    },
+    credentialDelete: {
+      credentialType: "abcdef",
+      issuer: "rIssuer",
+    },
   };
 
   const testCases = [
@@ -100,6 +115,9 @@ describe("FbksXrpApiService", () => {
     [TransactionType.BURN_TOKEN, "burnToken"],
     [TransactionType.FREEZE_TOKEN, "freezeToken"],
     [TransactionType.CLAWBACK, "clawback"],
+    [TransactionType.CREDENTIAL_CREATE, "credentialCreate"],
+    [TransactionType.CREDENTIAL_ACCEPT, "credentialAccept"],
+    [TransactionType.CREDENTIAL_DELETE, "credentialDelete"],
   ] as const;
 
   test.each(testCases)(

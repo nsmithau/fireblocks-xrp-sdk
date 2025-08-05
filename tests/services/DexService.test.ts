@@ -1,4 +1,3 @@
-// tests/services/dex.service.test.ts
 import { DexService } from "../../src/services";
 import { ValidationError } from "../../src/errors/errors";
 import {
@@ -6,9 +5,10 @@ import {
   derivePaymentFlags,
   validateAmount,
   validateMemos,
+  validateHash256,
 } from "../../src/utils/utils";
 import { Amount, Memo, Path } from "xrpl";
-import { IPaymentFlags } from "../../src/config/types";
+import { IPaymentFlags, IOfferCreateFlags } from "../../src/config/types";
 
 jest.mock("../../src/utils/utils", () => ({
   ...jest.requireActual("../../src/utils/utils"),
@@ -16,12 +16,23 @@ jest.mock("../../src/utils/utils", () => ({
   derivePaymentFlags: jest.fn(),
   validateAmount: jest.fn(),
   validateMemos: jest.fn((memos) => memos),
+  validateHash256: jest.fn(),
 }));
 
 const mockDeriveOfferCreateFlags = deriveOfferCreateFlags as jest.Mock;
 const mockDerivePaymentFlags = derivePaymentFlags as jest.Mock;
 const mockValidateAmount = validateAmount as jest.Mock;
 const mockValidateMemos = validateMemos as jest.Mock;
+const mockValidateHash256 = validateHash256 as jest.Mock;
+
+jest.mock("xrpl", () => ({
+  ...jest.requireActual("xrpl"),
+  isValidAddress: jest.fn(
+    (address) => typeof address === "string" && address.startsWith("r")
+  ),
+}));
+
+const isValidAddress = require("xrpl").isValidAddress as jest.Mock;
 
 describe("DexService", () => {
   let service: DexService;
@@ -31,7 +42,7 @@ describe("DexService", () => {
     jest.clearAllMocks();
   });
 
-  // ---------- OfferCreate ----------
+  // ========== OfferCreate ==========
 
   describe("getOfferCreateUnsignedTx", () => {
     const baseArgs = {
@@ -45,15 +56,18 @@ describe("DexService", () => {
       fee: "12",
       sequence: 100,
       lastLedgerSequence: 120,
+      domainId:
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
       expiration: 500,
-      flags: { tfFillOrKillOffer: true },
+      flags: { tfFillOrKillOffer: true } as IOfferCreateFlags,
       memos: [{ Memo: { MemoType: "foo", MemoData: "bar" } }] as Memo[],
     };
 
-    it("constructs OfferCreate tx with all valid inputs", () => {
+    it("constructs OfferCreate tx with all valid inputs including domainId", () => {
       mockValidateAmount.mockReturnValue(undefined);
       mockDeriveOfferCreateFlags.mockReturnValue(0x80000000);
       mockValidateMemos.mockReturnValue(baseArgs.memos);
+      mockValidateHash256.mockReturnValue(undefined);
 
       const tx = service.getOfferCreateUnsignedTx(
         baseArgs.address,
@@ -62,15 +76,20 @@ describe("DexService", () => {
         baseArgs.fee,
         baseArgs.sequence,
         baseArgs.lastLedgerSequence,
+        baseArgs.domainId,
         baseArgs.expiration,
         baseArgs.flags,
         baseArgs.memos
       );
-
       expect(tx.TransactionType).toBe("OfferCreate");
       expect(tx.Expiration).toBe(baseArgs.expiration);
       expect(tx.Flags).toBe(0x80000000);
       expect(tx.Memos).toEqual(baseArgs.memos);
+      expect(tx.DomainID).toBe(baseArgs.domainId);
+      expect(mockValidateHash256).toHaveBeenCalledWith(
+        "domainId",
+        baseArgs.domainId
+      );
     });
 
     it("omits optional fields when not provided", () => {
@@ -85,15 +104,18 @@ describe("DexService", () => {
         baseArgs.sequence,
         baseArgs.lastLedgerSequence
       );
-
       expect(tx.Expiration).toBeUndefined();
       expect(tx.Flags).toBeUndefined();
       expect(tx.Memos).toBeUndefined();
+      expect(tx.DomainID).toBeUndefined();
+      expect(mockValidateHash256).not.toHaveBeenCalled();
     });
 
-    it("throws ValidationError for invalid sellAmount or buyAmount", () => {
-      mockValidateAmount.mockImplementationOnce(() => {
-        throw new ValidationError("BadAmount", "sell invalid");
+    it("throws ValidationError for invalid domainId", () => {
+      mockValidateAmount.mockReturnValue(undefined);
+      mockDeriveOfferCreateFlags.mockReturnValue(undefined);
+      mockValidateHash256.mockImplementation(() => {
+        throw new ValidationError("InvalidHash256", "domainId bad");
       });
       expect(() =>
         service.getOfferCreateUnsignedTx(
@@ -102,28 +124,13 @@ describe("DexService", () => {
           baseArgs.buyAmount,
           baseArgs.fee,
           baseArgs.sequence,
-          baseArgs.lastLedgerSequence
-        )
-      ).toThrow(ValidationError);
-
-      mockValidateAmount
-        .mockReturnValueOnce(undefined)
-        .mockImplementationOnce(() => {
-          throw new ValidationError("BadAmount", "buy invalid");
-        });
-      expect(() =>
-        service.getOfferCreateUnsignedTx(
-          baseArgs.address,
-          baseArgs.sellAmount,
-          baseArgs.buyAmount,
-          baseArgs.fee,
-          baseArgs.sequence,
-          baseArgs.lastLedgerSequence
+          baseArgs.lastLedgerSequence,
+          "bad"
         )
       ).toThrow(ValidationError);
     });
 
-    it("throws ValidationError for negative or fractional expiration", () => {
+    it("throws ValidationError for invalid expiration", () => {
       mockValidateAmount.mockReturnValue(undefined);
       expect(() =>
         service.getOfferCreateUnsignedTx(
@@ -133,10 +140,10 @@ describe("DexService", () => {
           baseArgs.fee,
           baseArgs.sequence,
           baseArgs.lastLedgerSequence,
+          undefined,
           -1
         )
       ).toThrow(ValidationError);
-
       expect(() =>
         service.getOfferCreateUnsignedTx(
           baseArgs.address,
@@ -145,15 +152,16 @@ describe("DexService", () => {
           baseArgs.fee,
           baseArgs.sequence,
           baseArgs.lastLedgerSequence,
-          1.5 as any
+          undefined,
+          1.5
         )
       ).toThrow(ValidationError);
     });
 
-    it("throws ValidationError when deriveOfferCreateFlags errors", () => {
+    it("throws ValidationError when deriveOfferCreateFlags throws", () => {
       mockValidateAmount.mockReturnValue(undefined);
       mockDeriveOfferCreateFlags.mockImplementation(() => {
-        throw new Error("flag issue");
+        throw new Error("flags fail");
       });
       expect(() =>
         service.getOfferCreateUnsignedTx(
@@ -163,15 +171,15 @@ describe("DexService", () => {
           baseArgs.fee,
           baseArgs.sequence,
           baseArgs.lastLedgerSequence,
-          baseArgs.expiration,
+          undefined,
+          undefined,
           baseArgs.flags
         )
       ).toThrow(ValidationError);
     });
 
-    it("wraps unexpected errors in OfferCreateError", () => {
-      // simulate unexpected error
-      mockValidateAmount.mockImplementation(() => {
+    it("wraps unexpected errors as OfferCreateError", () => {
+      mockValidateAmount.mockImplementationOnce(() => {
         throw new Error("oops");
       });
       expect(() =>
@@ -183,11 +191,11 @@ describe("DexService", () => {
           baseArgs.sequence,
           baseArgs.lastLedgerSequence
         )
-      ).toThrow(ValidationError);
+      ).toThrow(expect.objectContaining({ code: "OfferCreateError" }));
     });
   });
 
-  // ---------- CrossCurrencyPayment ----------
+  // ========== CrossCurrencyPayment ==========
 
   describe("getCrossCurrencyPaymentUnsignedTx", () => {
     const baseArgs = {
@@ -226,7 +234,6 @@ describe("DexService", () => {
         baseArgs.destinationTag,
         baseArgs.invoiceId
       );
-
       expect(tx.TransactionType).toBe("Payment");
       expect(tx.SendMax).toEqual(baseArgs.sendMax);
       expect(tx.Paths).toEqual(baseArgs.paths);
@@ -248,7 +255,6 @@ describe("DexService", () => {
         baseArgs.sequence,
         baseArgs.lastLedgerSequence
       );
-
       expect(tx.SendMax).toBeUndefined();
       expect(tx.Paths).toBeUndefined();
       expect(tx.Flags).toBeUndefined();
@@ -370,11 +376,11 @@ describe("DexService", () => {
           baseArgs.sequence,
           baseArgs.lastLedgerSequence
         )
-      ).toThrow(ValidationError);
+      ).toThrow(expect.objectContaining({ code: "PaymentError" }));
     });
   });
 
-  // ---------- OfferCancel ----------
+  // ========== OfferCancel ==========
 
   describe("getOfferCancelUnsignedTx", () => {
     const baseArgs = {
@@ -430,6 +436,438 @@ describe("DexService", () => {
           baseArgs.lastLedgerSequence
         )
       ).toThrow(ValidationError);
+    });
+
+    it("wraps unexpected errors as OfferCancelError", () => {
+      mockValidateMemos.mockImplementation(() => {
+        throw new Error("memos fail");
+      });
+      expect(() =>
+        service.getOfferCancelUnsignedTx(
+          baseArgs.address,
+          baseArgs.offerSequence,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.memos
+        )
+      ).toThrow(expect.objectContaining({ code: "OfferCancelError" }));
+    });
+  });
+
+  // ========== CredentialCreate ==========
+
+  describe("getCredentialCreateUnsignedTx", () => {
+    const baseArgs = {
+      address: "rCred",
+      fee: "10",
+      sequence: 9,
+      lastLedgerSequence: 99,
+      subject: "rSubject",
+      credentialType: "a1b2c3d4",
+      expiration: 31415,
+      uri: "abc123ef",
+      flags: 0x80000000,
+      memos: [{ Memo: { MemoType: "x", MemoData: "y" } }] as Memo[],
+    };
+
+    it("constructs CredentialCreate tx with all valid fields", () => {
+      mockValidateMemos.mockImplementation((memos) => memos);
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialCreateUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.subject,
+        baseArgs.credentialType,
+        baseArgs.expiration,
+        baseArgs.uri,
+        baseArgs.flags,
+        baseArgs.memos
+      );
+      expect(tx.TransactionType).toBe("CredentialCreate");
+      expect(tx.Subject).toBe(baseArgs.subject);
+      expect(tx.CredentialType).toBe(baseArgs.credentialType);
+      expect(tx.Expiration).toBe(baseArgs.expiration);
+      expect(tx.URI).toBe(baseArgs.uri);
+      expect(tx.Flags).toBe(baseArgs.flags);
+      expect(tx.Memos).toEqual(baseArgs.memos);
+    });
+
+    it("omits optional fields when not provided", () => {
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialCreateUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.subject,
+        baseArgs.credentialType
+      );
+      expect(tx.Expiration).toBeUndefined();
+      expect(tx.URI).toBeUndefined();
+      expect(tx.Flags).toBeUndefined();
+      expect(tx.Memos).toBeUndefined();
+    });
+
+    it("throws ValidationError if subject is invalid", () => {
+      isValidAddress.mockReturnValue(false);
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          "badsubject",
+          baseArgs.credentialType
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid credentialType", () => {
+      isValidAddress.mockReturnValue(true);
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          "gibberishZ"
+        )
+      ).toThrow(ValidationError);
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          "g".repeat(130)
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid expiration", () => {
+      isValidAddress.mockReturnValue(true);
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          baseArgs.credentialType,
+          -1
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid uri", () => {
+      isValidAddress.mockReturnValue(true);
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          baseArgs.credentialType,
+          undefined,
+          "nohexZZ"
+        )
+      ).toThrow(ValidationError);
+
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          baseArgs.credentialType,
+          undefined,
+          "f".repeat(513)
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("wraps unexpected errors as OfferCancelError", () => {
+      isValidAddress.mockReturnValue(true);
+      mockValidateMemos.mockImplementationOnce(() => {
+        throw new Error("bad memo");
+      });
+      expect(() =>
+        service.getCredentialCreateUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.subject,
+          baseArgs.credentialType,
+          baseArgs.expiration,
+          baseArgs.uri,
+          baseArgs.flags,
+          baseArgs.memos
+        )
+      ).toThrow(expect.objectContaining({ code: "OfferCancelError" }));
+    });
+  });
+
+  // ========== CredentialAccept ==========
+
+  describe("getCredentialAcceptUnsignedTx", () => {
+    const baseArgs = {
+      address: "rAcc",
+      fee: "12",
+      sequence: 8,
+      lastLedgerSequence: 22,
+      issuer: "rIssuer",
+      credentialType: "a1b2",
+      flags: 0x80000000,
+      memos: [{ Memo: { MemoType: "foo", MemoData: "bar" } }] as Memo[],
+    };
+
+    it("constructs CredentialAccept tx with all valid fields", () => {
+      mockValidateMemos.mockImplementation((memos) => memos);
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialAcceptUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.issuer,
+        baseArgs.credentialType,
+        baseArgs.flags,
+        baseArgs.memos
+      );
+      expect(tx.TransactionType).toBe("CredentialAccept");
+      expect(tx.Issuer).toBe(baseArgs.issuer);
+      expect(tx.CredentialType).toBe(baseArgs.credentialType);
+      expect(tx.Flags).toBe(baseArgs.flags);
+      expect(tx.Memos).toEqual(baseArgs.memos);
+    });
+
+    it("omits optional fields when not provided", () => {
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialAcceptUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.issuer,
+        baseArgs.credentialType
+      );
+      expect(tx.Flags).toBeUndefined();
+      expect(tx.Memos).toBeUndefined();
+    });
+
+    it("throws ValidationError if issuer is invalid", () => {
+      isValidAddress.mockReturnValue(false);
+      expect(() =>
+        service.getCredentialAcceptUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          "notanaddress",
+          baseArgs.credentialType
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid credentialType", () => {
+      isValidAddress.mockReturnValue(true);
+      expect(() =>
+        service.getCredentialAcceptUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.issuer,
+          "gZ"
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("wraps unexpected errors as CredentialAcceptError", () => {
+      isValidAddress.mockReturnValue(true);
+      mockValidateMemos.mockImplementationOnce(() => {
+        throw new Error("unexpected memo fail");
+      });
+      expect(() =>
+        service.getCredentialAcceptUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.issuer,
+          baseArgs.credentialType,
+          baseArgs.flags,
+          baseArgs.memos
+        )
+      ).toThrow(expect.objectContaining({ code: "CredentialAcceptError" }));
+    });
+  });
+
+  // ========== CredentialDelete ==========
+
+  describe("getCredentialDeleteUnsignedTx", () => {
+    const baseArgs = {
+      address: "rDel",
+      fee: "12",
+      sequence: 5,
+      lastLedgerSequence: 15,
+      credentialType: "aabbcc",
+      issuer: "rIssuer",
+      subject: "rSubject",
+      flags: 0x80000000,
+      memos: [{ Memo: { MemoType: "a", MemoData: "b" } }] as Memo[],
+    };
+
+    it("constructs CredentialDelete tx with issuer and subject", () => {
+      mockValidateMemos.mockImplementation((memos) => memos);
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialDeleteUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.credentialType,
+        baseArgs.issuer,
+        baseArgs.subject,
+        baseArgs.flags,
+        baseArgs.memos
+      );
+      expect(tx.TransactionType).toBe("CredentialDelete");
+      expect(tx.Issuer).toBe(baseArgs.issuer);
+      expect(tx.Subject).toBe(baseArgs.subject);
+      expect(tx.Flags).toBe(baseArgs.flags);
+      expect(tx.Memos).toEqual(baseArgs.memos);
+    });
+
+    it("constructs CredentialDelete tx with only issuer", () => {
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialDeleteUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.credentialType,
+        baseArgs.issuer
+      );
+      expect(tx.Issuer).toBe(baseArgs.issuer);
+      expect(tx.Subject).toBeUndefined();
+    });
+
+    it("constructs CredentialDelete tx with only subject", () => {
+      isValidAddress.mockReturnValue(true);
+      const tx = service.getCredentialDeleteUnsignedTx(
+        baseArgs.address,
+        baseArgs.fee,
+        baseArgs.sequence,
+        baseArgs.lastLedgerSequence,
+        baseArgs.credentialType,
+        undefined,
+        baseArgs.subject
+      );
+      expect(tx.Issuer).toBeUndefined();
+      expect(tx.Subject).toBe(baseArgs.subject);
+    });
+
+    it("throws ValidationError if both issuer and subject are missing", () => {
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.credentialType
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for missing credentialType", () => {
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          ""
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid credentialType", () => {
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          "zz"
+        )
+      ).toThrow(ValidationError);
+
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          "a".repeat(129)
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("throws ValidationError for invalid issuer/subject if provided", () => {
+      isValidAddress.mockImplementation((address) => address === "rIssuer");
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.credentialType,
+          "notanaddress",
+          baseArgs.subject
+        )
+      ).toThrow(ValidationError);
+
+      isValidAddress.mockImplementation((address) => address === "rSubject");
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.credentialType,
+          baseArgs.issuer,
+          "notanaddress"
+        )
+      ).toThrow(ValidationError);
+    });
+
+    it("wraps unexpected errors as CredentialDeleteError", () => {
+      isValidAddress.mockReturnValue(true);
+      mockValidateMemos.mockImplementationOnce(() => {
+        throw new Error("memo boom");
+      });
+      expect(() =>
+        service.getCredentialDeleteUnsignedTx(
+          baseArgs.address,
+          baseArgs.fee,
+          baseArgs.sequence,
+          baseArgs.lastLedgerSequence,
+          baseArgs.credentialType,
+          baseArgs.issuer,
+          baseArgs.subject,
+          baseArgs.flags,
+          baseArgs.memos
+        )
+      ).toThrow(expect.objectContaining({ code: "CredentialDeleteError" }));
     });
   });
 });

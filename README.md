@@ -24,7 +24,7 @@ Built for Fireblocks customers who want seamless DEX, token, and issuer operatio
 
 ## 🚀 Features
 
-- **Advanced XRPL support:** DEX (OfferCreate/Cancel, CrossCurrencyPayment), token & XRP transfers, setting trust lines, account settings, clawback, freeze/unfreeze and burn.
+- **Advanced XRPL support:** DEX ([OfferCreate](https://xrpl.org/docs/references/protocol/transactions/types/offercreate)/[Cancel](https://xrpl.org/docs/references/protocol/transactions/types/offercancel), [Cross Currency Payments](https://xrpl.org/docs/concepts/payment-types/cross-currency-payments) and [Credentials](https://xrpl.org/docs/references/protocol/transactions/types/credentialcreate)), [token & XRP transfers](https://xrpl.org/docs/references/protocol/transactions/types/payment), [setting trust lines](https://xrpl.org/docs/references/protocol/transactions/types/trustset), [account settings](<(https://xrpl.org/docs/references/protocol/transactions/types/accountset)>), [clawback](https://xrpl.org/docs/references/protocol/transactions/types/clawback), [freeze/unfreeze](https://xrpl.org/docs/references/protocol/transactions/types/trustset) and [burn](https://xrpl.org/docs/use-cases/tokenization/stablecoin-issuer#burn).
 - **Fireblocks wallet integration:** Secure MPC key management, raw signing flows, and transaction creation.
 - **Raw content validation with callback handler support** Any Raw transaction created by the SDK includes the unhashed payload for further validation actions on your callback handler before signing.
 - **Stateless, pool-managed SDK:** Efficient use of Fireblocks APIs with per-vault pooling.
@@ -71,15 +71,15 @@ Start by copying `.env.example` to `.env` and editing for your environment:
 cp .env.example .env
 ```
 
-| Variable Name                 | Required | Default  | Purpose                                                                                                                |
-| ----------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `FIREBLOCKS_API_KEY`          |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
-| `FIREBLOCKS_API_SECRET`       |   Yes    | –        | Path to Fireblocks private key                                                                                         |
-| `FIREBLOCKS_VAULT_ACCOUNT_ID` |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
-| `FIREBLOCKS_ASSET_ID`         |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
-| `FIREBLOCKS_BASE_PATH`        |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
-| `SDK_LOG_LEVEL`               |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
-| `PORT`                        |    No    | 3000     | API server port (REST mode)                                                                                            |
+| Variable Name                   | Required | Default  | Purpose                                                                                                                |
+| ------------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `FIREBLOCKS_API_KEY`            |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
+| `FIREBLOCKS_API_PATH_TO_SECRET` |   Yes    | –        | Path to Fireblocks private key                                                                                         |
+| `FIREBLOCKS_VAULT_ACCOUNT_ID`   |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
+| `FIREBLOCKS_ASSET_ID`           |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
+| `FIREBLOCKS_BASE_PATH`          |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
+| `SDK_LOG_LEVEL`                 |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
+| `PORT`                          |    No    | 3000     | API server port (REST mode)                                                                                            |
 
 ---
 
@@ -167,7 +167,7 @@ dotenv.config();
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
@@ -183,6 +183,8 @@ dotenv.config();
       tfPassiveOffer: true,
       tfSellOffer: true,
     },
+    domainId:
+      "ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
   };
 
   const opts: ExecuteTransactionOpts = {
@@ -269,7 +271,9 @@ curl -X POST http://localhost:3000/api/dex/offerCreate/<vaultAccountId> \
     "flags": {
       "tfPassiveOffer": true,
       "tfSellOffer": true
-    }
+    },
+    "domainId":
+      "ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890ABCDEF1234567890",
   }'
 ```
 
@@ -407,6 +411,9 @@ The running API server exposes interactive documentation and SDK reference for e
 - `POST /api/dex/offerCreate/:vaultAccountId`
 - `POST /api/dex/offerCancel/:vaultAccountId`
 - `POST /api/dex/crossCurrencyPayment/:vaultAccountId`
+- `POST /api/dex/credentialCreate/:vaultAccountId`
+- `POST /api/dex/credentialAccept/:vaultAccountId`
+- `POST /api/dex/credentialDelete/:vaultAccountId`
 
 **Token Routes:**
 

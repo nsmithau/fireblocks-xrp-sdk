@@ -1,6 +1,6 @@
-// tests/fireblocksXrpSdk.test.ts
 import { FireblocksXrpSdk, FireblocksConfig } from "../src/FireblocksXrpSdk";
 import { Fireblocks } from "@fireblocks/ts-sdk";
+import { XRPL_BURN_ADDRESS } from "../src/utils/constants";
 
 jest.mock("dotenv", () => ({
   config: jest.fn(),
@@ -138,6 +138,36 @@ describe("FireblocksXrpSdk", () => {
       );
       (sdk as any).dexService.getOfferCreateUnsignedTx("args");
       expect(spy).toHaveBeenCalledWith("args");
+    });
+
+    it("calls tokenService.createFungibleTokenPaymentTx for burnToken with burn address", async () => {
+      const amount = { currency: "USD", issuer: "rIssuer", value: "5" };
+      const sdkInstance = sdk as any;
+      const burnTxMock = sdkInstance.tokenService.createFungibleTokenPaymentTx;
+      burnTxMock.mockReturnValue({ TransactionType: "Payment" });
+      sdkInstance.getClientParams = jest.fn().mockResolvedValue({
+        fee: "12",
+        sequence: 1,
+        lastLedgerSequence: 10000,
+      });
+      sdkInstance.signAndSubmitTx = jest.fn().mockResolvedValue({ hash: "h" });
+
+      await sdk.burnToken({ amount });
+
+      expect(
+        (sdk as any).tokenService.createFungibleTokenPaymentTx
+      ).toHaveBeenCalledWith(
+        sdk.address,
+        "rrrrrrrrrrrrrrrrrrrrBZbvji",
+        amount,
+        "12",
+        1,
+        10000,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
     });
   });
 

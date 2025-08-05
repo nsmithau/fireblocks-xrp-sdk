@@ -14,22 +14,18 @@
   "tags": [
     {
       "name": "DEX",
-      "description": "Ripple DEX operations (offer create/cancel, cross-currency payment)"
+      "description": "Ripple DEX operations (offer create/cancel, cross-currency payment, credentials)"
     },
     {
       "name": "Token",
       "description": "IOU/Fungible token operations (transfer, burn, clawback, freeze, trust lines, XRP transfer, AccountSet)"
     }
   ],
-  "schemes": [
-    "http"
-  ],
+  "schemes": ["http"],
   "paths": {
     "/api/dex/offerCreate/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "DEX"
-        ],
+        "tags": ["DEX"],
         "summary": "Create an Offer",
         "description": "Creates an offer on the XRP Ledger DEX.",
         "parameters": [
@@ -63,9 +59,7 @@
     },
     "/api/dex/offerCancel/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "DEX"
-        ],
+        "tags": ["DEX"],
         "summary": "Cancel an Offer",
         "description": "Cancels an existing offer on the XRP Ledger DEX.",
         "parameters": [
@@ -99,9 +93,7 @@
     },
     "/api/dex/crossCurrencyPayment/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "DEX"
-        ],
+        "tags": ["DEX"],
         "summary": "Cross Currency Payment",
         "description": "Performs a cross-currency payment on the XRP Ledger DEX.",
         "parameters": [
@@ -133,11 +125,111 @@
         }
       }
     },
+    "/api/dex/credentialCreate/{vaultAccountId}": {
+      "post": {
+        "tags": ["DEX"],
+        "summary": "CredentialCreate",
+        "description": "Creates a credential entry for a subject (as described in XRPL protocol).",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CredentialCreateResponse",
+            "schema": {
+              "$ref": "#/definitions/CredentialCreateResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/CredentialCreateRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dex/credentialAccept/{vaultAccountId}": {
+      "post": {
+        "tags": ["DEX"],
+        "summary": "CredentialAccept",
+        "description": "Accepts a credential issued by a third party (as described in XRPL protocol).",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CredentialAcceptResponse",
+            "schema": {
+              "$ref": "#/definitions/CredentialAcceptResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/CredentialAcceptRequest"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dex/credentialDelete/{vaultAccountId}": {
+      "post": {
+        "tags": ["DEX"],
+        "summary": "CredentialDelete",
+        "description": "Deletes a credential (as described in XRPL protocol). You must provide credentialType and at least one of issuer or subject.",
+        "parameters": [
+          {
+            "name": "vaultAccountId",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Fireblocks vault account ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CredentialDeleteResponse",
+            "schema": {
+              "$ref": "#/definitions/CredentialDeleteResponse"
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/CredentialDeleteRequest"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/token/tokenTransfer/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "Token Transfer",
         "description": "Transfers IOU/fungible tokens between accounts.",
         "parameters": [
@@ -171,9 +263,7 @@
     },
     "/api/token/burnToken/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "Burn Token",
         "description": "Burns IOU/fungible tokens.",
         "parameters": [
@@ -207,9 +297,7 @@
     },
     "/api/token/clawback/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "Clawback",
         "description": "Clawback IOU/fungible tokens from a holder.",
         "parameters": [
@@ -243,9 +331,7 @@
     },
     "/api/token/freezeToken/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "Freeze Token",
         "description": "Freezes IOU/fungible tokens on an account.",
         "parameters": [
@@ -279,9 +365,7 @@
     },
     "/api/token/trustSet/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "TrustSet",
         "description": "Creates or updates a trust line for IOU/fungible tokens.",
         "parameters": [
@@ -315,9 +399,7 @@
     },
     "/api/token/accountSet/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "AccountSet",
         "description": "Account configuration operations.",
         "parameters": [
@@ -351,9 +433,7 @@
     },
     "/api/token/xrpTransfer/{vaultAccountId}": {
       "post": {
-        "tags": [
-          "Token"
-        ],
+        "tags": ["Token"],
         "summary": "XRP Transfer",
         "description": "Transfers XRP from one account to another.",
         "parameters": [
@@ -565,6 +645,162 @@
           "type": "string",
           "example": "string"
         }
+      }
+    },
+    "CredentialCreateRequest": {
+      "type": "object",
+      "required": ["subject", "credentialType"],
+      "properties": {
+        "subject": {
+          "type": "string",
+          "description": "The subject of the credential (XRPL address)",
+          "example": "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe"
+        },
+        "credentialType": {
+          "type": "string",
+          "description": "Hex string, 1–64 bytes (2–128 hex chars). Type of credential entry.",
+          "example": "AABBCCDDEEFF"
+        },
+        "expiration": {
+          "type": "integer",
+          "description": "Expiration time in seconds since Ripple Epoch (UInt32). Optional.",
+          "example": 725846400
+        },
+        "uri": {
+          "type": "string",
+          "description": "Arbitrary data about the credential, as HEX string (1–256 bytes, 2–512 hex chars). Optional.",
+          "example": "68747470733A2F2F6578616D706C652E636F6D2F637265645F31"
+        },
+        "flags": {
+          "type": "integer",
+          "description": "Optional transaction flags."
+        },
+        "memos": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Memo" },
+          "description": "Optional memos array."
+        }
+      }
+    },
+    "CredentialCreateResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": { "type": "string", "example": "ABCDEF0123456789" },
+            "meta": { "type": "object", "properties": {} },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "CredentialCreate"
+                }
+              }
+            }
+          }
+        },
+        "id": { "type": "string", "example": "string" }
+      }
+    },
+    "CredentialAcceptRequest": {
+      "type": "object",
+      "required": ["issuer", "credentialType"],
+      "properties": {
+        "issuer": {
+          "type": "string",
+          "description": "The address of the issuer that created the credential.",
+          "example": "rIssuerAddress123"
+        },
+        "credentialType": {
+          "type": "string",
+          "description": "Hex string, 1–64 bytes (2–128 hex chars). Type of credential entry.",
+          "example": "AABBCCDDEEFF"
+        },
+        "flags": {
+          "type": "integer",
+          "description": "Optional transaction flags."
+        },
+        "memos": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Memo" },
+          "description": "Optional memos array."
+        }
+      }
+    },
+    "CredentialAcceptResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": { "type": "string", "example": "ABCDEF0123456789" },
+            "meta": { "type": "object", "properties": {} },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "CredentialAccept"
+                }
+              }
+            }
+          }
+        },
+        "id": { "type": "string", "example": "string" }
+      }
+    },
+    "CredentialDeleteRequest": {
+      "type": "object",
+      "required": ["credentialType"],
+      "properties": {
+        "credentialType": {
+          "type": "string",
+          "description": "Hex string, 1–64 bytes (2–128 hex chars). Type of credential entry.",
+          "example": "AABBCCDDEEFF"
+        },
+        "issuer": {
+          "type": "string",
+          "description": "Issuer XRPL address. At least one of issuer or subject must be provided.",
+          "example": "rIssuerAddress123"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject XRPL address. At least one of issuer or subject must be provided.",
+          "example": "rSubjectAddress123"
+        },
+        "flags": {
+          "type": "integer",
+          "description": "Optional transaction flags."
+        },
+        "memos": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Memo" },
+          "description": "Optional memos array."
+        }
+      }
+    },
+    "CredentialDeleteResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "hash": { "type": "string", "example": "ABCDEF0123456789" },
+            "meta": { "type": "object", "properties": {} },
+            "tx_json": {
+              "type": "object",
+              "properties": {
+                "TransactionType": {
+                  "type": "string",
+                  "example": "CredentialDelete"
+                }
+              }
+            }
+          }
+        },
+        "id": { "type": "string", "example": "string" }
       }
     },
     "TokenTransferRequest": {
@@ -988,6 +1224,19 @@
         "message": {
           "type": "string",
           "example": "Detailed error message"
+        }
+      }
+    },
+    "Memo": {
+      "type": "object",
+      "properties": {
+        "Memo": {
+          "type": "object",
+          "properties": {
+            "MemoType": { "type": "string", "example": "type" },
+            "MemoData": { "type": "string", "example": "hex-data" },
+            "MemoFormat": { "type": "string", "example": "format" }
+          }
         }
       }
     }
