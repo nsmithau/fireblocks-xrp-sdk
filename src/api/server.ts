@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(cors());
 const fbksXrpApiServiceConfigs: ApiServiceConfig = {
   apiKey: process.env.FIREBLOCKS_API_KEY || "",
-  apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
+  apiSecret: process.env.FIREBLOCKS_SECRET_KEY || "",
   assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
   basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   poolConfig: {
@@ -45,10 +45,10 @@ if (fbksXrpApiServiceConfigs.apiKey === "") {
   );
 }
 if (fbksXrpApiServiceConfigs.apiSecret === "") {
-  logger.error("FIREBLOCKS_API_SECRET is not set in environment variables");
+  logger.error("FIREBLOCKS_SECRET_KEY is not set in environment variables");
   throw new ValidationError(
     "InvalidEnvParams",
-    "FIREBLOCKS_API_SECRET is required"
+    "FIREBLOCKS_SECRET_KEY is required"
   );
 }
 

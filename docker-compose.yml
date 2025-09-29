@@ -4,11 +4,10 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./secrets/fireblocks_secret.key:/secrets/fireblocks_secret.key:ro
       - ./.env:/app/.env:ro
     ports:
       - "3000:3000"
     env_file: ./.env
     environment:
-      - FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
+      - FIREBLOCKS_SECRET_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC...\n... more base64 ...\n-----END PRIVATE KEY-----
     restart: unless-stopped
