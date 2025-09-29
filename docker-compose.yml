@@ -8,6 +8,4 @@ services:
     ports:
       - "3000:3000"
     env_file: ./.env
-    environment:
-      - FIREBLOCKS_SECRET_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC...\n... more base64 ...\n-----END PRIVATE KEY-----
     restart: unless-stopped
