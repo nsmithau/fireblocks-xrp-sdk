@@ -165,7 +165,7 @@ dotenv.config();
 
   const apiSecret =
     readFileSync(FIREBLOCKS_API_SECRET_PATH, "utf8") ||
-    process.env.FIREBLOCKS_SECRET_KEY;
+    process.env.FIREBLOCKS_SECRET_KEY?.replace(/\\n/g, "\n");
 
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
