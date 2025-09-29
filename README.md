@@ -157,6 +157,7 @@ docker-compose up --build
 Sample usage via direct SDK in Node.js (see `/examples` for more):
 
 ```ts
+import { readFileSync } from "fs";
 import { FbksXrpApiService } from "./src/api/ApiService";
 import { TransactionType } from "./src/pool/types";
 import { BasePath } from "@fireblocks/ts-sdk";
@@ -165,9 +166,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 (async () => {
+  const FIREBLOCKS_API_SECRET_PATH = "./fireblocks_secret.key";
+
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    apiSecret: readFileSync(FIREBLOCKS_API_SECRET_PATH, "utf8"),
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
