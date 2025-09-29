@@ -5,7 +5,7 @@ import { ExecuteTransactionOpts } from "../src/config/types";
 (async () => {
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    apiSecret: process.env.FIREBLOCKS_SECRET_KEY || "",
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
