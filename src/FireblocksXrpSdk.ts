@@ -743,7 +743,7 @@ export class FireblocksXrpSdk extends Wallet {
       secretKey,
       basePath: config.basePath || BasePath.US,
       additionalOptions: {
-        userAgent: "FireblocksRippleSDK/1.0.0",
+        userAgent: "FireblocksRippleSDK/1.1.0",
       },
     });
   };
