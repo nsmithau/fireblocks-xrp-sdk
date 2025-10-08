@@ -22,9 +22,26 @@ const logger = new Logger("server");
 const app = express();
 app.use(express.json());
 app.use(cors());
+// Read the private key from file
+let apiSecret = "";
+try {
+  const secretKeyPath = process.env.FIREBLOCKS_API_PATH_TO_SECRET;
+  if (secretKeyPath) {
+    apiSecret = fs.readFileSync(secretKeyPath, "utf8");
+    // Handle newline characters that might be escaped in environment variables
+    apiSecret = apiSecret.replace(/\\n/g, "\n");
+  }
+} catch (error) {
+  logger.error("Error reading private key file:", error);
+  throw new ValidationError(
+    "InvalidEnvParams",
+    "Could not read private key file from FIREBLOCKS_API_PATH_TO_SECRET"
+  );
+}
+
 const fbksXrpApiServiceConfigs: ApiServiceConfig = {
   apiKey: process.env.FIREBLOCKS_API_KEY || "",
-  apiSecret: process.env.FIREBLOCKS_API_SECRET || "",
+  apiSecret: apiSecret,
   assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
   basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   poolConfig: {
@@ -45,10 +62,10 @@ if (fbksXrpApiServiceConfigs.apiKey === "") {
   );
 }
 if (fbksXrpApiServiceConfigs.apiSecret === "") {
-  logger.error("FIREBLOCKS_API_SECRET is not set in environment variables");
+  logger.error("FIREBLOCKS_API_PATH_TO_SECRET is not set or file could not be read");
   throw new ValidationError(
     "InvalidEnvParams",
-    "FIREBLOCKS_API_SECRET is required"
+    "FIREBLOCKS_API_PATH_TO_SECRET is required and must point to a valid private key file"
   );
 }
 

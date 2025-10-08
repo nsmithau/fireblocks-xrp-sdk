@@ -17,6 +17,8 @@ import {
   FreezeTokenOpts,
   ClawbackOpts,
   XrpTransferOpts,
+  OracleSetOpts,
+  OracleDeleteOpts,
   ExecuteTransactionOpts,
   CredentialCreateOpts,
   CredentialAcceptOpts,
@@ -149,6 +151,12 @@ export class FbksXrpApiService {
         case TransactionType.XRP_TRANSFER:
           // const { destination, amount, note } =
           result = await sdk.xrpTransfer(params as XrpTransferOpts);
+          break;
+        case TransactionType.ORACLE_SET:
+          result = await sdk.oracleSet(params as OracleSetOpts);
+          break;
+        case TransactionType.ORACLE_DELETE:
+          result = await sdk.oracleDelete(params as OracleDeleteOpts);
           break;
         default:
           logger.error(

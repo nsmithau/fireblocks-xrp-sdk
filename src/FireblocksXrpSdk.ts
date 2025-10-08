@@ -29,6 +29,8 @@ import {
   CredentialCreateOpts,
   CredentialAcceptOpts,
   CredentialDeleteOpts,
+  OracleSetOpts,
+  OracleDeleteOpts,
 } from "./config/types";
 import { XRPL_BURN_ADDRESS } from "./utils/constants";
 import { getNetworkParams } from "./utils/utils";
@@ -713,6 +715,58 @@ export class FireblocksXrpSdk extends Wallet {
       this.address
     );
     return { fee, sequence, lastLedgerSequence };
+  };
+
+  public oracleSet = async ({
+    OracleDocumentID,
+    Provider,
+    URI,
+    LastUpdateTime,
+    AssetClass,
+    PriceDataSeries,
+  }: OracleSetOpts): Promise<TxResponse> => {
+    const { fee, sequence, lastLedgerSequence } = await this.getClientParams();
+
+    const transaction: Transaction = {
+      TransactionType: "OracleSet",
+      Account: this.address,
+      OracleDocumentID,
+      LastUpdateTime,
+      PriceDataSeries,
+      Fee: fee,
+      Sequence: sequence,
+      LastLedgerSequence: lastLedgerSequence,
+    };
+
+    // Add optional fields if provided
+    if (Provider) {
+      (transaction as any).Provider = Provider;
+    }
+    if (URI) {
+      (transaction as any).URI = URI;
+    }
+    if (AssetClass) {
+      (transaction as any).AssetClass = AssetClass;
+    }
+
+    return await this.signAndSubmitTx(transaction, "OracleSet");
+  };
+
+  public oracleDelete = async ({
+    OracleDocumentID,
+  }: OracleDeleteOpts): Promise<TxResponse> => {
+    const { fee, sequence, lastLedgerSequence } = await this.getClientParams();
+
+    const transaction: Transaction = {
+      TransactionType: "OracleDelete",
+      Account: this.address,
+      OracleDocumentID,
+      Fee: fee,
+      Sequence: sequence,
+      LastLedgerSequence: lastLedgerSequence,
+    };
+
+    return await this.signAndSubmitTx(transaction, "OracleDelete");
   };
 
   public shutDown = async () => {

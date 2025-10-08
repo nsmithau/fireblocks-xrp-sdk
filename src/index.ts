@@ -15,5 +15,8 @@ export {
   CredentialCreateOpts,
   CredentialAcceptOpts,
   CredentialDeleteOpts,
+  OracleSetOpts,
+  OracleDeleteOpts,
+  PriceData,
 } from "./config/types";
 export { TransactionType } from "./pool/types";

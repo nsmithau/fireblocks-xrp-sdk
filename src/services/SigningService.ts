@@ -1,11 +1,10 @@
-import { Wallet, Transaction } from "xrpl";
+import { Wallet, Transaction, encode, decode } from "xrpl";
 import {
   CreateTransactionResponse,
   Fireblocks,
   TransactionResponse,
   TransactionStateEnum,
 } from "@fireblocks/ts-sdk";
-import { encode, decode } from "ripple-binary-codec";
 import { hashSignedTx, hashTx } from "xrpl/dist/npm/utils/hashes";
 import { FireblocksXrpSdk } from "../FireblocksXrpSdk";
 import { SigningError } from "../errors/errors";

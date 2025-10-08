@@ -263,6 +263,37 @@ export interface FreezeTokenOpts extends BasePaymentOpts {
   freeze: boolean;
 }
 
+/**
+ * Price data for Oracle transactions
+ */
+export interface PriceData {
+  BaseAsset: string;
+  QuoteAsset: string;
+  AssetPrice?: string;
+  Scale?: number;
+}
+
+/**
+ * Options for OracleSet transaction
+ */
+export interface OracleSetOpts {
+  OracleDocumentID: number;
+  Provider?: string;
+  URI?: string;
+  LastUpdateTime: number;
+  AssetClass?: string;
+  PriceDataSeries: Array<{
+    PriceData: PriceData;
+  }>;
+}
+
+/**
+ * Options for OracleDelete transaction
+ */
+export interface OracleDeleteOpts {
+  OracleDocumentID: number;
+}
+
 export interface ExecuteTransactionOpts {
   vaultAccountId: string;
   transactionType: TransactionType;
@@ -280,5 +311,7 @@ export interface ExecuteTransactionOpts {
     | BurnTokenOpts
     | FreezeTokenOpts
     | ClawbackOpts
-    | XrpTransferOpts;
+    | XrpTransferOpts
+    | OracleSetOpts
+    | OracleDeleteOpts;
 }
