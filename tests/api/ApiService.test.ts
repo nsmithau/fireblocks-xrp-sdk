@@ -22,6 +22,8 @@ const mockSdkInstance = {
   credentialCreate: jest.fn(),
   credentialAccept: jest.fn(),
   credentialDelete: jest.fn(),
+  oracleSet: jest.fn(),
+  oracleDelete: jest.fn(),
 };
 
 const mockGetSdk = jest.fn();
@@ -103,6 +105,23 @@ describe("FbksXrpApiService", () => {
       credentialType: "abcdef",
       issuer: "rIssuer",
     },
+    oracleSet: {
+      OracleDocumentID: 1,
+      LastUpdateTime: Math.floor(Date.now() / 1000),
+      PriceDataSeries: [
+        {
+          PriceData: {
+            BaseAsset: "XRP",
+            QuoteAsset: "USD",
+            AssetPrice: "1000",
+            Scale: 3,
+          },
+        },
+      ],
+    },
+    oracleDelete: {
+      OracleDocumentID: 1,
+    },
   };
 
   const testCases = [
@@ -118,6 +137,8 @@ describe("FbksXrpApiService", () => {
     [TransactionType.CREDENTIAL_CREATE, "credentialCreate"],
     [TransactionType.CREDENTIAL_ACCEPT, "credentialAccept"],
     [TransactionType.CREDENTIAL_DELETE, "credentialDelete"],
+    [TransactionType.ORACLE_SET, "oracleSet"],
+    [TransactionType.ORACLE_DELETE, "oracleDelete"],
   ] as const;
 
   test.each(testCases)(

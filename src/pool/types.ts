@@ -37,6 +37,8 @@ export enum TransactionType {
   FREEZE_TOKEN = "freezeToken",
   CLAWBACK = "clawback",
   XRP_TRANSFER = "xrpTransfer",
+  ORACLE_SET = "oracleSet",
+  ORACLE_DELETE = "oracleDelete",
 }
 
 export interface SdkManagerMetrics {

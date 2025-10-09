@@ -12,7 +12,7 @@ import {
   TransactionResponse,
   TransferPeerPathType,
 } from "@fireblocks/ts-sdk";
-import { SigningService, DexService, TokenService } from "./services";
+import { SigningService, DexService, TokenService, OracleService } from "./services";
 import {
   TokenTransferOpts,
   CrossCurrencyPaymentOpts,
@@ -29,6 +29,8 @@ import {
   CredentialCreateOpts,
   CredentialAcceptOpts,
   CredentialDeleteOpts,
+  OracleSetOpts,
+  OracleDeleteOpts,
 } from "./config/types";
 import { XRPL_BURN_ADDRESS } from "./utils/constants";
 import { getNetworkParams } from "./utils/utils";
@@ -56,6 +58,7 @@ export class FireblocksXrpSdk extends Wallet {
   private signingService: SigningService;
   private dexService: DexService;
   private tokenService: TokenService;
+  private oracleService: OracleService;
   client: Client;
 
   constructor(
@@ -81,6 +84,7 @@ export class FireblocksXrpSdk extends Wallet {
     this.signingService = new SigningService(this.fireblocks, this);
     this.dexService = new DexService();
     this.tokenService = new TokenService();
+    this.oracleService = new OracleService();
   }
 
   // Override the sign method from the parent Wallet class
@@ -713,6 +717,109 @@ export class FireblocksXrpSdk extends Wallet {
       this.address
     );
     return { fee, sequence, lastLedgerSequence };
+  };
+
+  /**
+   * Create or update an Oracle on the XRPL ledger.
+   * @param OracleDocumentID - Unique identifier for the Oracle document
+   * @param Provider - Optional hex-encoded provider name
+   * @param URI - Optional hex-encoded URI
+   * @param LastUpdateTime - Unix timestamp of last update
+   * @param AssetClass - Optional hex-encoded asset class
+   * @param PriceDataSeries - Array of price data entries
+   * @returns TxResponse object with transaction results from XRPL
+   * @throws Error if the transaction fails
+   * @throws ValidationError if the parameters are invalid
+   * @throws SigningError if the transaction signing fails
+   */
+  public oracleSet = async ({
+    OracleDocumentID,
+    Provider,
+    URI,
+    LastUpdateTime,
+    AssetClass,
+    PriceDataSeries,
+  }: OracleSetOpts): Promise<TxResponse> => {
+    try {
+      const { fee, sequence, lastLedgerSequence } = await this.getClientParams();
+
+      logger.info(
+        `Creating an OracleSet transaction for wallet: ${this.address} with Oracle Document ID: ${OracleDocumentID}...`
+      );
+
+      // Delegate to service layer
+      const tx = this.oracleService.createOracleSetTx(
+        this.address,
+        fee,
+        sequence,
+        lastLedgerSequence,
+        {
+          OracleDocumentID,
+          Provider,
+          URI,
+          LastUpdateTime,
+          AssetClass,
+          PriceDataSeries,
+        }
+      );
+
+      const note = `OracleSet: Oracle Document ID ${OracleDocumentID}`;
+      return await this.signAndSubmitTx(tx, note);
+    } catch (err: any) {
+      // Rethrow ValidationError or SigningError unmodified
+      if (err instanceof ValidationError || err instanceof SigningError) {
+        throw err;
+      }
+      // Wrap any other unexpected errors
+      throw new Error(`Error in oracleSet: ${err.message || err}`);
+    } finally {
+      // Always disconnect
+      await this.shutDown();
+    }
+  };
+
+  /**
+   * Delete an Oracle from the XRPL ledger.
+   * @param OracleDocumentID - Unique identifier for the Oracle document to delete
+   * @returns TxResponse object with transaction results from XRPL
+   * @throws Error if the transaction fails
+   * @throws ValidationError if the parameters are invalid
+   * @throws SigningError if the transaction signing fails
+   */
+  public oracleDelete = async ({
+    OracleDocumentID,
+  }: OracleDeleteOpts): Promise<TxResponse> => {
+    try {
+      const { fee, sequence, lastLedgerSequence } = await this.getClientParams();
+
+      logger.info(
+        `Creating an OracleDelete transaction for wallet: ${this.address} with Oracle Document ID: ${OracleDocumentID}...`
+      );
+
+      // Delegate to service layer
+      const tx = this.oracleService.createOracleDeleteTx(
+        this.address,
+        fee,
+        sequence,
+        lastLedgerSequence,
+        {
+          OracleDocumentID,
+        }
+      );
+
+      const note = `OracleDelete: Oracle Document ID ${OracleDocumentID}`;
+      return await this.signAndSubmitTx(tx, note);
+    } catch (err: any) {
+      // Rethrow ValidationError or SigningError unmodified
+      if (err instanceof ValidationError || err instanceof SigningError) {
+        throw err;
+      }
+      // Wrap any other unexpected errors
+      throw new Error(`Error in oracleDelete: ${err.message || err}`);
+    } finally {
+      // Always disconnect
+      await this.shutDown();
+    }
   };
 
   public shutDown = async () => {
