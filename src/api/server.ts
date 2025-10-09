@@ -41,7 +41,7 @@ try {
 
 const fbksXrpApiServiceConfigs: ApiServiceConfig = {
   apiKey: process.env.FIREBLOCKS_API_KEY || "",
-  apiSecret: apiSecret,
+  apiSecret,
   assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
   basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   poolConfig: {
