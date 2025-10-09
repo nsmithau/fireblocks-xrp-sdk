@@ -18,21 +18,9 @@ This guide shows you how to run an OracleSet transaction using your `.env` file 
    npm install
    ```
 
-## Method 1: Using the Simple Script
+## Running the OracleSet Transaction
 
-Run the provided script that handles everything:
-
-```bash
-node run-oracle-set.js
-```
-
-This script will:
-- ✅ Check if `.env` file exists
-- ✅ Load environment variables
-- ✅ Execute the OracleSet transaction
-- ✅ Show detailed output and error handling
-
-## Method 2: Direct TypeScript Execution
+### Method 1: Direct TypeScript Execution
 
 Run the OracleSet example directly:
 
@@ -40,12 +28,58 @@ Run the OracleSet example directly:
 npx ts-node examples/oracleSet.example.ts
 ```
 
-## Method 3: Using npm Script (if configured)
+This will:
+- ✅ Load environment variables from your `.env` file
+- ✅ Execute the OracleSet transaction
+- ✅ Show detailed output and error handling
+- ✅ Display transaction hash and metadata
+
+### Method 2: Using npm Script (if configured)
 
 If you have a script in `package.json`:
 
 ```bash
 npm run oracle-set
+```
+
+### Method 3: Programmatic Usage
+
+You can also use the SDK programmatically in your own code:
+
+```typescript
+import { FbksXrpApiService, TransactionType } from "./src/";
+import { OracleSetOpts } from "./src/config/types";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const apiService = new FbksXrpApiService({
+  apiKey: process.env.FIREBLOCKS_API_KEY || "",
+  apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+  assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
+  basePath: process.env.FIREBLOCKS_BASE_PATH || "https://sandbox-api.fireblocks.io/v1",
+});
+
+const params: OracleSetOpts = {
+  OracleDocumentID: 34,
+  LastUpdateTime: Math.floor(Date.now() / 1000),
+  PriceDataSeries: [
+    {
+      PriceData: {
+        BaseAsset: "XRP",
+        QuoteAsset: "USD",
+        AssetPrice: "2850",
+        Scale: 3,
+      },
+    },
+  ],
+};
+
+const result = await apiService.executeTransaction({
+  vaultAccountId: process.env.FIREBLOCKS_VAULT_ACCOUNT_ID || "",
+  transactionType: TransactionType.ORACLE_SET,
+  params,
+});
 ```
 
 ## What the OracleSet Transaction Does
@@ -82,7 +116,7 @@ Tx metadata: {...}
 
 1. **Missing .env file**:
    ```
-   ❌ Error: .env file not found!
+   ❌ Error: Environment variables not found
    ```
    **Solution**: Create a `.env` file with the required variables.
 
@@ -100,9 +134,15 @@ Tx metadata: {...}
 
 4. **Missing dependencies**:
    ```
-   ❌ Error: Cannot find module 'ripple-binary-codec'
+   ❌ Error: Cannot find module 'xrpl' or other dependencies
    ```
    **Solution**: Run `npm install` to install all dependencies.
+
+5. **TypeScript compilation errors**:
+   ```
+   ❌ Error: TypeScript compilation failed
+   ```
+   **Solution**: Ensure you have TypeScript installed (`npm install -g typescript`) and run with `npx ts-node`.
 
 ### Environment Variable Details:
 
