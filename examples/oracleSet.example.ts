@@ -23,7 +23,7 @@ import { ExecuteTransactionOpts } from "../src/config/types";
           PriceData: {
             BaseAsset: "XRP",
             QuoteAsset: "USD",
-            AssetPrice: "2850", // 2850 with scale 3 = 2.850 (current market price)
+            AssetPrice: "974", // 2420 in hex with scale 3 = 2.420 (current market price)
             Scale: 3,
           },
         },
@@ -31,7 +31,7 @@ import { ExecuteTransactionOpts } from "../src/config/types";
           PriceData: {
             BaseAsset: "BTC",
             QuoteAsset: "USD",
-            AssetPrice: "121424000", // 121424000 with scale 3 = 121424.000 (current market price)
+            AssetPrice: "676F010", // 108458000 in hex with scale 3 = 108458.000 (current market price)
             Scale: 3,
           },
         },

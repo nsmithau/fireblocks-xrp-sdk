@@ -86,14 +86,23 @@ const result = await apiService.executeTransaction({
 
 The example creates an Oracle with the following data:
 
+### Important: AssetPrice Hexadecimal Encoding
+
+According to the [XRPL OracleSet documentation](https://xrpl.org/docs/references/protocol/transactions/types/oracleset), the `AssetPrice` field must be provided as a **hexadecimal string** representing a UInt64 value. This is different from decimal numbers.
+
+**Examples:**
+- Decimal 2420 → Hexadecimal "974" → With scale 3 = 2.420 (XRP/USD current price)
+- Decimal 108458000 → Hexadecimal "676F010" → With scale 3 = 108458.000 (BTC/USD current price)
+- Decimal 256 → Hexadecimal "100" → With scale 3 = 0.256
+
 ### Transaction Parameters:
 - **Oracle Document ID**: 34
 - **Provider**: "provider" (hex encoded as `70726F7669646572`)
 - **Asset Class**: "currency" (hex encoded as `63757272656E6379`)
 - **Last Update Time**: Current Unix timestamp
 - **Price Data Series**:
-  - XRP/USD: 2.850 (scale 3) - Current market price
-  - BTC/USD: 121424.000 (scale 3) - Current market price
+  - XRP/USD: 0x974 (2420 in hex) with scale 3 = 2.420 (current market price)
+  - BTC/USD: 0x676F010 (108458000 in hex) with scale 3 = 108458.000 (current market price)
 
 ### Expected Output:
 ```
@@ -103,8 +112,8 @@ Provider: 70726F7669646572 (provider)
 Asset Class: 63757272656E6379 (currency)
 Last Update Time: 1703123456 (2023-12-21T10:30:56.000Z)
 Price Data Series: 2 price pairs
-  1. XRP/USD: 2850 (scale: 3) = $2.850
-  2. BTC/USD: 121424000 (scale: 3) = $121,424.000
+  1. XRP/USD: 974 (hex) with scale 3 = 2.420
+  2. BTC/USD: 676F010 (hex) with scale 3 = 108458.000
 
 Tx submitted successfully with hash: ABC123...
 Tx metadata: {...}
@@ -163,22 +172,22 @@ You can modify the `examples/oracleSet.example.ts` file to:
    OracleDocumentID: 123, // Your custom ID
    ```
 
-2. **Add more price pairs**:
+2. **Add more price pairs** (remember to use hexadecimal values):
    ```typescript
    PriceDataSeries: [
      {
        PriceData: {
          BaseAsset: "XRP",
          QuoteAsset: "USD",
-         AssetPrice: "500000", // 500.000 with scale 3
+         AssetPrice: "974", // 2420 in hex with scale 3 = 2.420 (current XRP price)
          Scale: 3,
        },
      },
      {
        PriceData: {
-         BaseAsset: "ETH",
+         BaseAsset: "BTC",
          QuoteAsset: "USD",
-         AssetPrice: "3000000", // 3000.000 with scale 3
+         AssetPrice: "676F010", // 108458000 in hex with scale 3 = 108458.000 (current BTC price)
          Scale: 3,
        },
      },
