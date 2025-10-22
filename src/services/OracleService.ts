@@ -105,10 +105,10 @@ export class OracleService {
 
         // Validate AssetPrice if provided
         if (priceData.AssetPrice !== undefined) {
-          if (typeof priceData.AssetPrice !== "string" || !/^\d+$/.test(priceData.AssetPrice)) {
+          if (typeof priceData.AssetPrice !== "string" || !/^[0-9A-Fa-f]+$/.test(priceData.AssetPrice)) {
             throw new ValidationError(
               "InvalidAssetPrice",
-              `PriceDataSeries[${index}].AssetPrice must be a string of digits`
+              `PriceDataSeries[${index}].AssetPrice must be a hexadecimal string`
             );
           }
         }
