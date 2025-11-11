@@ -43,7 +43,11 @@ dotenv.config();
 
 export interface FireblocksConfig {
   apiKey: string;
-  apiSecret: string; // can be path or inline string
+  /**
+   * The secret key to use for authentication.
+   * This can also be set as an environment variable FIREBLOCKS_SECRET_KEY
+   */
+  apiSecret: string;
   vaultAccountId: string;
   assetId?: string;
   basePath?: BasePath;
@@ -727,14 +731,19 @@ export class FireblocksXrpSdk extends Wallet {
       vaultAccountId?: string;
     }
   ): Fireblocks => {
-    const secret = readFileSync(config.apiSecret, "utf8");
+    const secretKey = config.apiSecret || process.env.FIREBLOCKS_SECRET_KEY;
+    if (!secretKey) {
+      throw new Error(
+        "apiSecret is required either in the configuration or as environment variable FIREBLOCKS_SECRET_KEY"
+      );
+    }
 
     return new Fireblocks({
       apiKey: config.apiKey,
-      secretKey: secret,
+      secretKey,
       basePath: config.basePath || BasePath.US,
       additionalOptions: {
-        userAgent: "FireblocksRippleSDK/1.0.0",
+        userAgent: "FireblocksRippleSDK/1.1.0",
       },
     });
   };

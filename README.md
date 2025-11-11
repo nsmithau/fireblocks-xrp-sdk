@@ -71,21 +71,21 @@ Start by copying `.env.example` to `.env` and editing for your environment:
 cp .env.example .env
 ```
 
-| Variable Name                   | Required | Default  | Purpose                                                                                                                |
-| ------------------------------- | :------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
-| `FIREBLOCKS_API_KEY`            |   Yes    | –        | Your Fireblocks API key UUID                                                                                           |
-| `FIREBLOCKS_API_PATH_TO_SECRET` |   Yes    | –        | Path to Fireblocks private key                                                                                         |
-| `FIREBLOCKS_VAULT_ACCOUNT_ID`   |    No    | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
-| `FIREBLOCKS_ASSET_ID`           |    No    | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
-| `FIREBLOCKS_BASE_PATH`          |    No    | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
-| `SDK_LOG_LEVEL`                 |    No    | info     | Log level: debug, info, warn, error, fatal                                                                             |
-| `PORT`                          |    No    | 3000     | API server port (REST mode)                                                                                            |
+| Variable Name                 |                     Required                      | Default  | Purpose                                                                                                                |
+| ----------------------------- | :-----------------------------------------------: | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `FIREBLOCKS_API_KEY`          |                        Yes                        | –        | Your Fireblocks API key UUID                                                                                           |
+| `FIREBLOCKS_SECRET_KEY`       | No (for direct use in the SDK) / Yes (for Docker) | –        | Fireblocks private key to be used in the SDK or Docker                                                                 |
+| `FIREBLOCKS_VAULT_ACCOUNT_ID` |                        No                         | –        | Optional - Can be added to use a single wallet SDK intance, should be ommited when used as a dockerized server.        |
+| `FIREBLOCKS_ASSET_ID`         |                        No                         | XRP_TEST | Use `XRP` for mainnet, `XRP_TEST` for testnet                                                                          |
+| `FIREBLOCKS_BASE_PATH`        |                        No                         | US       | Fireblocks API environment (see [docs](https://developers.fireblocks.com/docs/workspace-environments) for region URLs) |
+| `SDK_LOG_LEVEL`               |                        No                         | info     | Log level: debug, info, warn, error, fatal                                                                             |
+| `PORT`                        |                        No                         | 3000     | API server port (REST mode)                                                                                            |
 
 ---
 
 ## 🔑 Mounting Your Fireblocks Private Key in Docker
 
-The SDK and REST API require access to your Fireblocks API private key (FIREBLOCKS_API_SECRET) for signing and secure communication with Fireblocks.
+The SDK and REST API require access to your Fireblocks API private key (FIREBLOCKS_SECRET_KEY) for signing and secure communication with Fireblocks.
 When running inside Docker, you must mount this file and reference it correctly.
 
 1. Store Your Private Key
@@ -94,24 +94,22 @@ When running inside Docker, you must mount this file and reference it correctly.
 ```bash
 your-project-root/
 │
-├─ secrets/
-│ └─ fireblocks_secret.key
 ├─ .env
 ├─ docker-compose.yml
 └─ ...
 ```
 
-#### **Important: Never commit your private key to source control.**
+#### **Important: Never commit your .env to source control.**
 
 2. Reference the Private Key in `.env`
    Set the environment variable in your `.env` file to match the path inside the container:
 
 ```bash
-FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
+FIREBLOCKS_SECRET_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC...\n... more base64 ...\n-----END PRIVATE KEY-----"
 ```
 
 3. How Docker Compose Mounts the Key
-   Your `docker-compose.yml` already mounts both the secrets folder and the .env file into the container:
+   Your `docker-compose.yml` already mounts the .env file into the container:
 
 ```yaml
 services:
@@ -120,23 +118,20 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./secrets/fireblocks_secret.key:/secrets/fireblocks_secret.key:ro
       - ./.env:/app/.env:ro
     ports:
       - "3000:3000"
     env_file: ./.env
     environment:
-      - FIREBLOCKS_API_SECRET=/secrets/fireblocks_secret.key
+      - FIREBLOCKS_SECRET_KEY=-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASC...\n... more base64 ...\n-----END PRIVATE KEY-----
     restart: unless-stopped
 ```
 
 This setup ensures that:
 
-Your private key is available in the container at `/secrets/fireblocks_secret.key`.
-
 The `.env` file with your Fireblocks credentials is available at `/app/.env`.
 
-The `FIREBLOCKS_API_SECRET` environment variable tells the SDK where to find the key.
+The `FIREBLOCKS_SECRET_KEY` environment variable allows the SDK to use the key to create a Fireblocks instance.
 
 4. Running the API Server
    Build and run the container with:
@@ -157,6 +152,7 @@ docker-compose up --build
 Sample usage via direct SDK in Node.js (see `/examples` for more):
 
 ```ts
+import { readFileSync } from "fs";
 import { FbksXrpApiService } from "./src/api/ApiService";
 import { TransactionType } from "./src/pool/types";
 import { BasePath } from "@fireblocks/ts-sdk";
@@ -165,9 +161,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 (async () => {
+  const FIREBLOCKS_API_SECRET_PATH = "./fireblocks_secret.key";
+
+  const apiSecret =
+    readFileSync(FIREBLOCKS_API_SECRET_PATH, "utf8") ||
+    process.env.FIREBLOCKS_SECRET_KEY?.replace(/\\n/g, "\n");
+
   const apiService = new FbksXrpApiService({
     apiKey: process.env.FIREBLOCKS_API_KEY || "",
-    apiSecret: process.env.FIREBLOCKS_API_PATH_TO_SECRET || "",
+    apiSecret,
     assetId: process.env.FIREBLOCKS_ASSET_ID || "XRP_TEST",
     basePath: (process.env.FIREBLOCKS_BASE_PATH as BasePath) || BasePath.US,
   });
